@@ -6,3 +6,10 @@ var (
 	DB *mongo.Client
 	Database string
 )
+
+type errorString struct {
+	message string
+}
+func (e *errorString) Error() string {
+	return e.message
+}

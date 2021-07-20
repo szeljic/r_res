@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/revel/revel"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"log"
 	"r_res/app/models"
 )
 
@@ -33,8 +34,9 @@ func (c User) Registration() revel.Result {
 	err := models.SaveUser(username, password, firstName, lastName, dob, email)
 
 	if err != nil {
+		log.Println(err)
 		r := Response{
-			Message: "failed",
+			Message: err.Error(),
 			Code:    -1,
 		}
 		return c.RenderJSON(r)
