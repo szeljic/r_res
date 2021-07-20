@@ -15,7 +15,8 @@ POST     /registration                           User.Registration
 GET     /favicon.ico                            404
 
 # Map static resources from the /app/public folder to the /public path
-GET     /*filepath                       Static.Serve("public")
+GET     /                               Static.Serve("public/index.html")
+GET     /*filepath                      Static.Serve("public")
 
 # Catch all, this will route any request into the controller path
 #
