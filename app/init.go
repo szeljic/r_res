@@ -1,9 +1,13 @@
 package app
 
 import (
+	"context"
 	"github.com/revel/revel"
 	_ "github.com/revel/modules"
-
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"r_res/app/models"
+	"time"
 )
 
 var (
@@ -38,6 +42,8 @@ func init() {
 	// revel.OnAppStart(ExampleStartupScript)
 	// revel.OnAppStart(InitDB)
 	// revel.OnAppStart(FillCache)
+
+	revel.OnAppStart(SetupDatabaseConnection)
 }
 
 // HeaderFilter adds common security headers
@@ -59,3 +65,22 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 //		// Dev mode
 //	}
 //}
+
+func SetupDatabaseConnection() {
+
+	host := revel.Config.StringDefault("mongo.host", "localhost")
+	port := revel.Config.StringDefault("mongo.port", "27017")
+	models.Database = revel.Config.StringDefault("mongo.database", "test")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://" + host + ":" + port))
+
+	models.DB = client
+
+	defer func() {
+		if err = client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
+}
