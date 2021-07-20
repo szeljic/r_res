@@ -4,6 +4,10 @@ Remove content from `./public` directory.
 
 Go to `./ui`
 
+First install libraries:
+
+`npm install`
+
 Run next command:
 
 `npm run build -- --dest=../public`
