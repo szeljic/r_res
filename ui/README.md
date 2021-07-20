@@ -1,24 +1,15 @@
-# rres
+# How to build
 
-## Project setup
-```
-yarn install
-```
+Remove content from `./public` directory.
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+Go to `./ui`
 
-### Compiles and minifies for production
-```
-yarn build
-```
+Run next command:
 
-### Lints and fixes files
-```
-yarn lint
-```
+`npm run build -- --dest=../public`
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+or 
+
+`yarn build --dest=../public`
+
+This will generate production ready build in public directory.
