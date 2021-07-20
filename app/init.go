@@ -44,6 +44,7 @@ func init() {
 	// revel.OnAppStart(FillCache)
 
 	revel.OnAppStart(SetupDatabaseConnection)
+	revel.OnAppStop(CloseDatabaseConnection)
 }
 
 // HeaderFilter adds common security headers
@@ -76,10 +77,19 @@ func SetupDatabaseConnection() {
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://" + host + ":" + port))
 
-	models.DB = client
+	if err != nil {
+		panic(err)
+	}
 
+	models.DB = client
+}
+
+
+func CloseDatabaseConnection() {
 	defer func() {
-		if err = client.Disconnect(ctx); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := models.DB.Disconnect(ctx); err != nil {
 			panic(err)
 		}
 	}()
