@@ -1,10 +1,9 @@
 package controllers
 
 import (
-	"context"
 	"github.com/revel/revel"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
+	"net/http"
 	"r_res/app/models"
 )
 
@@ -17,21 +16,23 @@ type Response struct {
 	Code    int    `json:"code"`
 }
 
+type RegistrationStruct struct {
+	Username       string                    `json:"username"`
+	Password       string                    `json:"password"`
+	FirstName      string                    `json:"first_name"`
+	LastName       string                    `json:"last_name"`
+	DateOfBirth    string                    `json:"date_of_birth"`
+	Email          string                    `json:"email"`
+}
+
 func (c User) Registration() revel.Result {
-	e := models.DB.Ping(context.TODO(), readpref.Primary())
 
-	if e != nil {
-		panic(e)
-	}
+	var registrationStruct RegistrationStruct
+	c.Params.BindJSON(&registrationStruct)
 
-	username := c.Params.Get("username")
-	password := c.Params.Get("password")
-	firstName := c.Params.Get("first_name")
-	lastName := c.Params.Get("last_name")
-	dob := c.Params.Get("date_of_birth")
-	email := c.Params.Get("email")
-
-	err := models.SaveUser(username, password, firstName, lastName, dob, email)
+	err := models.SaveUser(registrationStruct.Username, registrationStruct.Password,
+		registrationStruct.FirstName, registrationStruct.LastName,
+		registrationStruct.DateOfBirth, registrationStruct.Email)
 
 	if err != nil {
 		log.Println(err)
@@ -46,5 +47,44 @@ func (c User) Registration() revel.Result {
 		Message: "success",
 		Code:    200,
 	}
+	return c.RenderJSON(r)
+}
+
+type LoginStruct struct {
+	Username    string                    `json:"username"`
+	Password    string                    `json:"password"`
+}
+
+func (c User) Login() revel.Result {
+
+	var loginStruct LoginStruct
+	c.Params.BindJSON(&loginStruct)
+
+	var r Response
+
+	userId := models.CheckCredentials(loginStruct.Username, loginStruct.Password)
+	log.Println(userId, "KRATAK")
+	if userId > 0 {
+
+		c.Session["user"] = loginStruct.Username
+		c.Session.SetDefaultExpiration()
+
+		token, err := models.CreateToken(userId)
+
+		if err != nil {
+			return c.RenderJSON(http.StatusUnprocessableEntity)
+		}
+		c.RenderJSON(token)
+		log.Println(token, err, "AAA")
+
+		c.Response.Status = http.StatusOK
+		return c.RenderJSON(token)
+	}
+
+	r = Response{
+		Message: "Korisnicko ime ili lozinka nisu odgovarajuci!",
+		Code: 403,
+	}
+
 	return c.RenderJSON(r)
 }
