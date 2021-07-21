@@ -1,5 +1,15 @@
 module.exports = {
-	transpileDependencies: [
-		'vuetify'
-	]
-}
+	transpileDependencies: ['vuetify'],
+	productionSourceMap: false,
+	configureWebpack: {
+		optimization: {
+			splitChunks: {
+				cacheGroups: {
+					common: {
+						chunks: 'all'
+					}
+				}
+			}
+		}
+	}
+};
