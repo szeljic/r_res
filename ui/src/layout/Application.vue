@@ -1,10 +1,9 @@
 <template>
-	<v-container grid-list-md fluid>
-	</v-container>
+	<span>Application</span>
 </template>
 
 <script>
 	export default {
-		name: 'Home'
+		name: 'Application'
 	};
 </script>
