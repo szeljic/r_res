@@ -18,10 +18,12 @@
 </template>
 
 <script>
-
 	export default {
 		name: 'App',
-
-		data: () => ({drawer: null})
+		data: () => {
+			return {
+				drawer: true
+			};
+		}
 	};
 </script>
