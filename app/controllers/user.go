@@ -16,6 +16,12 @@ type Response struct {
 	Code    int    `json:"code"`
 }
 
+type LoginResponse struct {
+	Message 	string `json:"message"`
+	Code    	int    `json:"code"`
+	AccessToken string `json:"access_token"`
+}
+
 type RegistrationStruct struct {
 	Username       string                    `json:"username"`
 	Password       string                    `json:"password"`
@@ -60,8 +66,6 @@ func (c User) Login() revel.Result {
 	var loginStruct LoginStruct
 	c.Params.BindJSON(&loginStruct)
 
-	var r Response
-
 	userId := models.CheckCredentials(loginStruct.Username, loginStruct.Password)
 	log.Println(userId, "KRATAK")
 	if userId > 0 {
@@ -77,11 +81,17 @@ func (c User) Login() revel.Result {
 		c.RenderJSON(token)
 		log.Println(token, err, "AAA")
 
+		r := LoginResponse {
+			Message: "success",
+			Code: 200,
+			AccessToken: token,
+		}
+
 		c.Response.Status = http.StatusOK
-		return c.RenderJSON(token)
+		return c.RenderJSON(r)
 	}
 
-	r = Response{
+	r := Response{
 		Message: "Korisnicko ime ili lozinka nisu odgovarajuci!",
 		Code: 403,
 	}
