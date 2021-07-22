@@ -1,5 +1,5 @@
 <template>
-	<v-form @submit="submit" :disabled="disabled">
+	<v-form @submit.prevent="submit" ref="frm" :disabled="disabled" v-model="valid">
 		<v-card>
 			<v-card-title>Login</v-card-title>
 			<v-divider></v-divider>
@@ -27,7 +27,7 @@
 			<v-divider></v-divider>
 			<v-card-actions>
 				<v-spacer></v-spacer>
-				<v-btn color="primary">Login</v-btn>
+				<v-btn color="primary" type="submit">Login</v-btn>
 				<v-btn @click.prevent="reset">Očisti</v-btn>
 			</v-card-actions>
 		</v-card>
@@ -35,7 +35,7 @@
 </template>
 
 <script>
-	import axios from 'axios';
+	import Cookies from 'js-cookie';
 
 	export default {
 		name: 'Login',
@@ -46,20 +46,35 @@
 				item: {
 					username: null,
 					password: null
-				}
+				},
+				valid: null
 			};
 		},
 		methods: {
-			async submit()
-			{
-				const response = await axios({});
-
-				console.log(response);
-			},
 			reset()
 			{
-				this.item.username = null;
-				this.item.password = null;
+				this.$refs.frm.reset();
+				this.$refs.frm.resetValidation();
+			},
+			async submit()
+			{
+				this.disabled = true;
+
+				const response = await this.$http({
+					url: '/login',
+					data: this.item,
+					method: 'POST'
+				});
+
+				if (response.data.code === 200)
+				{
+					Cookies.set('x-token', response.data.access_token);
+				} else if (response.data.code === 403)
+				{
+					Cookies.remove('x-token');
+				}
+
+				this.disabled = false;
 			}
 		}
 	};

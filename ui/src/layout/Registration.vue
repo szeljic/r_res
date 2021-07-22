@@ -1,5 +1,5 @@
 <template>
-	<v-form @submit="submit" ref="frm" :disabled="disabled">
+	<v-form @submit.prevent="submit" ref="frm" :disabled="disabled" v-model="valid">
 		<v-card>
 			<v-card-title>Registracija</v-card-title>
 			<v-divider></v-divider>
@@ -10,6 +10,7 @@
 							outlined
 							label="Ime"
 							v-model="item.first_name"
+							:rules="[$v.required, $v.minLength(4)]"
 						></v-text-field>
 					</v-col>
 					<v-col>
@@ -17,6 +18,7 @@
 							outlined
 							label="Prezime"
 							v-model="item.last_name"
+							:rules="[$v.required, $v.minLength(4)]"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -26,6 +28,7 @@
 							outlined
 							label="Datum rođenja"
 							v-model="item.date_of_birth"
+							:rules="[$v.required]"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -35,6 +38,7 @@
 							outlined
 							label="eMail"
 							v-model="item.email"
+							:rules="[$v.required, $v.email]"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -44,6 +48,7 @@
 							outlined
 							label="Korisničko ime"
 							v-model="item.username"
+							:rules="[$v.required, $v.minLength(5)]"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -54,6 +59,7 @@
 							label="Lozinka"
 							v-model="item.password"
 							type="password"
+							:rules="[$v.required, $v.minLength(8), rulePassword]"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -64,6 +70,7 @@
 							label="Potvrda lozinke"
 							v-model="password"
 							type="password"
+							:rules="[rulePasswordAgain]"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -71,7 +78,7 @@
 			<v-divider></v-divider>
 			<v-card-actions>
 				<v-spacer></v-spacer>
-				<v-btn color="primary" :disabled="disabled" type="submit">Potvrdi</v-btn>
+				<v-btn color="primary" :disabled="disabled || !valid" type="submit">Potvrdi</v-btn>
 				<v-btn :disabled="disabled" @click.prevent="reset">Očisti</v-btn>
 			</v-card-actions>
 		</v-card>
@@ -79,8 +86,6 @@
 </template>
 
 <script>
-	import axios from 'axios';
-
 	export default {
 		name: 'Registration',
 		data()
@@ -96,28 +101,39 @@
 					password: null
 				},
 				password: null,
-				itemClone: null
+				valid: null
 			};
-		},
-		created()
-		{
-			this.itemClone = Object.assign({}, this.item);
 		},
 		methods: {
 			reset()
 			{
-				this.item = this.itemClone;
-				this.password = null;
+				this.$refs.frm.reset();
+				this.$refs.frm.resetValidation();
 			},
 			async submit()
 			{
-				const formData = new FormData();
+				if (!this.$refs.frm.validate())
+				{
+					return;
+				}
 
-				Object.entries(this.item).forEach(([k, v]) => formData.append(k, v));
+				this.disabled = true;
 
-				const response = await axios.post('/registration', formData);
+				await this.$http({
+					url: '/registration',
+					data: this.item,
+					method: 'POST'
+				});
 
-				console.log(response);
+				this.disabled = false;
+			},
+			rulePassword(v)
+			{
+				return /\w/.test(v) && /\d/.test(v) && /\W/.test(v);
+			},
+			rulePasswordAgain()
+			{
+				return this.item.password === this.password;
 			}
 		}
 	};
