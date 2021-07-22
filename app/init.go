@@ -6,6 +6,7 @@ import (
 	_ "github.com/revel/modules"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 	"r_res/app/models"
 	"time"
 )
@@ -45,6 +46,8 @@ func init() {
 
 	revel.OnAppStart(SetupDatabaseConnection)
 	revel.OnAppStop(CloseDatabaseConnection)
+
+	revel.InterceptFunc(checkUser, revel.BEFORE, &models.User{})
 }
 
 // HeaderFilter adds common security headers
@@ -93,4 +96,10 @@ func CloseDatabaseConnection() {
 			panic(err)
 		}
 	}()
+}
+
+func checkUser(*revel.Controller) revel.Result {
+	log.Println("MIDDLEWARE")
+
+	return nil
 }

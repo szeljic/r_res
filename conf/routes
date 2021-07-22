@@ -9,9 +9,9 @@ module:testrunner
 
 #GET     /                                       App.Index
 
-POST     /login                                  User.Login
-POST     /registration                           User.Registration
-GET      /token-validation                       App.TokenValidation
+POST     /login                                  Auth.Login
+POST     /registration                           Auth.Registration
+GET      /token-validation                       Auth.TokenValidation
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
