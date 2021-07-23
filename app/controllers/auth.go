@@ -33,7 +33,7 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-var jwtKey = []byte("loodloo")
+var JwtKey []byte
 
 func (c Auth) Registration() revel.Result {
 
@@ -86,7 +86,7 @@ func (c Auth) Login() revel.Result {
 	userId := models.CheckCredentials(loginStruct.Username, loginStruct.Password)
 	if userId > 0 {
 
-		expirationTime := time.Now().Add(5 * time.Minute)
+		expirationTime := time.Now().Add(15 * time.Minute)
 
 		claims := &Claims{
 			Username: loginStruct.Username,
@@ -96,7 +96,7 @@ func (c Auth) Login() revel.Result {
 		}
 
 		t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := t.SignedString(jwtKey)
+		tokenString, err := t.SignedString(JwtKey)
 		if err != nil {
 			r := LoginResponse {
 				Message: "false",
@@ -134,7 +134,7 @@ func (c Auth) TokenValidation() revel.Result {
 	claims := &Claims{}
 
 	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
+		return JwtKey, nil
 	})
 
 	if err != nil {
@@ -160,15 +160,16 @@ func (c Auth) TokenValidation() revel.Result {
 		return c.RenderJSON(r)
 	}
 
-	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
+	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 120*time.Second {
 		r := TokenResponse{
 			Success: false,
 			Logged: true,
 		}
-		c.Response.Status = http.StatusBadRequest
+		c.Response.Status = http.StatusOK
 		return c.RenderJSON(r)
 	}
 
+	c.Response.Status = http.StatusOK
 	r := TokenResponse{
 		Success: true,
 		Logged: true,

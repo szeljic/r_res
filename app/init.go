@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"r_res/app/controllers"
 	"r_res/app/models"
 	"time"
 )
@@ -46,8 +47,9 @@ func init() {
 
 	revel.OnAppStart(SetupDatabaseConnection)
 	revel.OnAppStop(CloseDatabaseConnection)
+	revel.OnAppStop(LoadJWTVariables)
 
-	revel.InterceptFunc(checkUser, revel.BEFORE, &models.User{})
+	revel.InterceptFunc(checkUser, revel.BEFORE, &controllers.User{})
 }
 
 // HeaderFilter adds common security headers
@@ -101,5 +103,11 @@ func CloseDatabaseConnection() {
 func checkUser(*revel.Controller) revel.Result {
 	log.Println("MIDDLEWARE")
 
+
+
 	return nil
+}
+
+func LoadJWTVariables() {
+	controllers.JwtKey = []byte(revel.Config.StringDefault("jwt.key", "loodloo"))
 }
