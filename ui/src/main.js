@@ -1,15 +1,26 @@
 import Vue from 'vue';
 
-import router from './router';
-import store from './store';
 import vuetify from './plugins/vuetify';
 import Layout from '@/layout/Layout';
+import Validate from '@/plugins/validate';
+
+import Bus from '@/plugins/bus';
+import Http from '@/plugins/http';
+import Store from '@/plugins/store';
+import User from '@/plugins/user';
+
+import router from './router';
+
+Vue.use(new Bus());
+Vue.use(new Store());
+Vue.use(new Validate());
+Vue.use(new Http());
+Vue.use(new User());
 
 Vue.config.productionTip = false;
 
 new Vue({
 	router,
-	store,
 	vuetify,
 	render: h => h(Layout)
 }).$mount('#app');

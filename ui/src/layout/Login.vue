@@ -1,5 +1,5 @@
 <template>
-	<v-form @submit="submit" :disabled="disabled">
+	<v-form @submit.prevent="submit" ref="frm" :disabled="disabled" v-model="valid">
 		<v-card>
 			<v-card-title>Login</v-card-title>
 			<v-divider></v-divider>
@@ -9,7 +9,7 @@
 						<v-text-field
 							outlined
 							label="Korisničko ime"
-							v-model="item.username"
+							v-model="username"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -19,7 +19,7 @@
 							outlined
 							label="Lozinka"
 							type="password"
-							v-model="item.password"
+							v-model="password"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -27,7 +27,7 @@
 			<v-divider></v-divider>
 			<v-card-actions>
 				<v-spacer></v-spacer>
-				<v-btn color="primary">Login</v-btn>
+				<v-btn color="primary" type="submit">Login</v-btn>
 				<v-btn @click.prevent="reset">Očisti</v-btn>
 			</v-card-actions>
 		</v-card>
@@ -35,31 +35,30 @@
 </template>
 
 <script>
-	import axios from 'axios';
-
 	export default {
 		name: 'Login',
 		data()
 		{
 			return {
 				disabled: false,
-				item: {
-					username: null,
-					password: null
-				}
+				username: null,
+				password: null,
+				valid: null
 			};
 		},
 		methods: {
-			async submit()
-			{
-				const response = await axios({});
-
-				console.log(response);
-			},
 			reset()
 			{
-				this.item.username = null;
-				this.item.password = null;
+				this.$refs.frm.reset();
+				this.$refs.frm.resetValidation();
+			},
+			async submit()
+			{
+				this.disabled = true;
+
+				await this.$user.login(this.username, this.password);
+
+				this.disabled = false;
 			}
 		}
 	};
