@@ -1,7 +1,4 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
-
-const tokenKey = 'x-token';
 
 class Http
 {
@@ -9,11 +6,14 @@ class Http
 	{
 		Vue.prototype.$http = function (conf)
 		{
-			const token = Cookies.get(tokenKey);
+			const vue = new Vue(),
+				store = vue.$store;
+
+			const token = store.getters['user/token'];
 
 			if (token)
 			{
-				axios.defaults.headers.common[tokenKey] = token;
+				axios.defaults.headers.common['x-token'] = token;
 			}
 
 			const promise = axios(conf);

@@ -9,7 +9,7 @@
 						<v-text-field
 							outlined
 							label="Korisničko ime"
-							v-model="item.username"
+							v-model="username"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -19,7 +19,7 @@
 							outlined
 							label="Lozinka"
 							type="password"
-							v-model="item.password"
+							v-model="password"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -35,18 +35,14 @@
 </template>
 
 <script>
-	import Cookies from 'js-cookie';
-
 	export default {
 		name: 'Login',
 		data()
 		{
 			return {
 				disabled: false,
-				item: {
-					username: null,
-					password: null
-				},
+				username: null,
+				password: null,
 				valid: null
 			};
 		},
@@ -60,19 +56,7 @@
 			{
 				this.disabled = true;
 
-				const response = await this.$http({
-					url: '/login',
-					data: this.item,
-					method: 'POST'
-				});
-
-				if (response.data.code === 200)
-				{
-					Cookies.set('x-token', response.data.access_token);
-				} else if (response.data.code === 403)
-				{
-					Cookies.remove('x-token');
-				}
+				await this.$user.login(this.username, this.password);
 
 				this.disabled = false;
 			}
