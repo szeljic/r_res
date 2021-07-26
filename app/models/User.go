@@ -7,6 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"net/url"
+	"strconv"
 )
 
 type User struct {
@@ -16,7 +18,8 @@ type User struct {
 	FirstName string	`bson:"first_name"`
 	LastName string		`bson:"last_name"`
 	Email string		`bson:"email"`
-	DateOfBirth primitive.DateTime
+	DateOfBirth string	`bson:"date_of_birth"`
+	Status int			`bson:"status"`
 }
 
 func SaveUser(username, password, firstName, lastName, dob, email string) error {
@@ -44,6 +47,7 @@ func SaveUser(username, password, firstName, lastName, dob, email string) error 
 			"last_name": lastName,
 			"date_of_birth": dob,
 			"email": email,
+			"status": 1,
 		})
 
 	if err != nil {
@@ -67,7 +71,7 @@ func CheckCredentials(username, password string) int {
 
 	var user User
 	collection := DB.Database(Database).Collection("users")
-	err := collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&user)
+	err := collection.FindOne(context.Background(), bson.M{"username": username, "status": 1}).Decode(&user)
 
 	if err != nil {
 		log.Println("Korisnik ne postoji")
@@ -86,14 +90,12 @@ func maxId() int {
 	collection := DB.Database(Database).Collection("users")
 
 	findOptions := options.Find()
-	// Sort by `price` field descending
 	findOptions.SetSort(bson.D{{"id", -1}})
 	findOptions.SetLimit(1)
 
 	users, err := collection.Find(context.Background(), bson.M{}, findOptions)
 
 	if err != nil {
-		log.Println(err, "ASD")
 		return 0
 	}
 
@@ -108,15 +110,33 @@ func maxId() int {
 	return 0
 }
 
-func GetUsers() []User {
+func GetUsers(q, sortBy, order string, paginateBy, page int64) []User {
 
 	collection := DB.Database(Database).Collection("users")
 
 	findOptions := options.Find()
-	// Sort by `price` field descending
-	findOptions.SetSort(bson.D{{"id", 1}})
+	if order == "desc" {
+		findOptions.SetSort(bson.D{{sortBy, -1}})
+	} else {
+		findOptions.SetSort(bson.D{{sortBy, 1}})
+	}
 
-	users, err := collection.Find(context.Background(), bson.M{}, findOptions)
+	findOptions.SetLimit(paginateBy)
+	findOptions.SetSkip(paginateBy * (page - 1))
+
+	filter := bson.M{}
+	if q != "" {
+		qInt, _ := strconv.Atoi(q)
+		filter = bson.M{"$or": []interface{}{
+			bson.M{"username": primitive.Regex{Pattern: "^" + q, Options: ""}},
+			bson.M{"first_name": primitive.Regex{Pattern: "^" + q, Options: ""}},
+			bson.M{"last_name": primitive.Regex{Pattern: "^" + q, Options: ""}},
+			bson.M{"email": primitive.Regex{Pattern: "^" + q, Options: ""}},
+			bson.M{"id": qInt}},
+		}
+	}
+
+	users, err := collection.Find(context.Background(), filter, findOptions)
 
 	if err != nil {
 		panic("Something went wrong!")
@@ -131,4 +151,44 @@ func GetUsers() []User {
 	}
 
 	return returnUsers
+}
+
+func GetTotal() int {
+	collection := DB.Database(Database).Collection("users")
+	filter := bson.M{}
+	data, err := collection.CountDocuments(context.Background(), filter)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return int(data)
+}
+
+func UpdateUser(id int, data url.Values) error {
+
+	collection := DB.Database(Database).Collection("users")
+
+	var set bson.D
+
+	for key, value := range data {
+		v, err := strconv.Atoi(value[0])
+		if err != nil {
+			set = append(set, bson.E{Key: key, Value: value[0]})
+		} else {
+			set = append(set, bson.E{Key: key, Value: v})
+		}
+	}
+
+	_, err := collection.UpdateOne(context.Background(),
+		bson.M{"id": id},
+		bson.D{
+			{"$set", set},
+		})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
