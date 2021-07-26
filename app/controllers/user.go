@@ -61,11 +61,11 @@ func (c User) Update() revel.Result {
 
 	data := c.Params.Form
 
-	id, e := strconv.Atoi(c.Params.Route.Get("id"))
+	id, err := strconv.Atoi(c.Params.Route.Get("id"))
 
-	if e != nil {
+	if err != nil {
 		r := Response{
-			Message: "Something went wrong!",
+			Message: err.Error(),
 			Code:    0,
 		}
 
@@ -73,7 +73,7 @@ func (c User) Update() revel.Result {
 		return c.RenderJSON(r)
 	}
 
-	err := models.UpdateUser(id, data)
+	err = models.UpdateUser(id, data)
 	if err != nil {
 		r := Response{
 			Message: err.Error(),
@@ -86,12 +86,4 @@ func (c User) Update() revel.Result {
 
 	return c.RenderJSON(data)
 }
-
-
-
-
-
-
-
-
 
