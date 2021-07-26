@@ -25,7 +25,7 @@ class User
 	async login(username, password)
 	{
 		const response = await this.vue.$http({
-			url: '/login',
+			url: '/api/v1/auth/login',
 			data: {username, password},
 			method: 'POST'
 		});
@@ -56,7 +56,7 @@ class User
 		}
 
 		this.vue.$http({
-			url: '/token-validation',
+			url: '/api/v1/auth/check',
 			method: 'GET'
 		}).then(d =>
 		{

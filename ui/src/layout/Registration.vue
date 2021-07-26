@@ -120,7 +120,7 @@
 				this.disabled = true;
 
 				await this.$http({
-					url: '/registration',
+					url: '/api/v1/auth/registration',
 					data: this.item,
 					method: 'POST'
 				});
