@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/revel/revel"
-	"log"
+	"r_res/app/models"
 )
 
 type User struct {
@@ -14,10 +14,7 @@ type Response struct {
 	Code    int    `json:"code"`
 }
 
-func (c User) Home() revel.Result{
-
-	log.Println("HOME")
-
-
-	return c.RenderJSON(true)
+func (c User) Index() revel.Result{
+	users := models.GetUsers()
+	return c.RenderJSON(users)
 }

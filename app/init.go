@@ -2,11 +2,13 @@ package app
 
 import (
 	"context"
-	"github.com/revel/revel"
+	"github.com/dgrijalva/jwt-go"
 	_ "github.com/revel/modules"
+	"github.com/revel/revel"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"net/http"
 	"r_res/app/controllers"
 	"r_res/app/models"
 	"time"
@@ -100,14 +102,44 @@ func CloseDatabaseConnection() {
 	}()
 }
 
-func checkUser(*revel.Controller) revel.Result {
-	log.Println("MIDDLEWARE")
+type TokenResponse struct {
+	Logged bool		`json:"logged"`
+}
+func checkUser(c *revel.Controller) revel.Result {
 
-
-
+	if !isLoggedIn(c) {
+		log.Println("USER IS NOT LOGGED IN!!!")
+		r := TokenResponse{
+			Logged: false,
+		}
+		c.Response.Status = http.StatusUnauthorized
+		return c.RenderJSON(r)
+	}
+	log.Println("USER IS LOGGED IN!!!")
 	return nil
 }
 
 func LoadJWTVariables() {
 	controllers.JwtKey = []byte(revel.Config.StringDefault("jwt.key", "loodloo"))
+}
+
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
+func isLoggedIn(c *revel.Controller) bool {
+	token := c.Request.Header.Get("x-token")
+	claims := &Claims{}
+
+	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return controllers.JwtKey, nil
+	})
+	if err != nil {
+		return false
+	}
+	if !tkn.Valid {
+		return false
+	}
+	return true
 }

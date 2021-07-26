@@ -11,8 +11,8 @@ module:testrunner
 
 POST     /api/v1/auth/login                                  Auth.Login
 POST     /api/v1/auth/registration                           Auth.Registration
-GET      /api/v1/auth/check                       Auth.TokenValidation
-GET      /api/v1/home                                   User.Home
+GET      /api/v1/auth/check                                  Auth.TokenValidation
+GET      /api/v1/users                                       User.Index
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

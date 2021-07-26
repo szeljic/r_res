@@ -107,3 +107,28 @@ func maxId() int {
 	}
 	return 0
 }
+
+func GetUsers() []User {
+
+	collection := DB.Database(Database).Collection("users")
+
+	findOptions := options.Find()
+	// Sort by `price` field descending
+	findOptions.SetSort(bson.D{{"id", 1}})
+
+	users, err := collection.Find(context.Background(), bson.M{}, findOptions)
+
+	if err != nil {
+		panic("Something went wrong!")
+	}
+	var returnUsers []User
+	for users.Next(context.Background()) {
+		var user User
+		if err = users.Decode(&user); err != nil {
+			panic(err)
+		}
+		returnUsers = append(returnUsers, user)
+	}
+
+	return returnUsers
+}
