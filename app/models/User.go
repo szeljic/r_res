@@ -2,24 +2,26 @@ package models
 
 import (
 	"context"
+	"github.com/dgrijalva/jwt-go"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/url"
+	"r_res/app/common"
 	"strconv"
 )
 
 type User struct {
-	ID int				`bson:"id"`
-	Username string		`bson:"username"`
-	Password string		`bson:"password"`
-	FirstName string	`bson:"first_name"`
-	LastName string		`bson:"last_name"`
-	Email string		`bson:"email"`
-	DateOfBirth string	`bson:"date_of_birth"`
-	Status int			`bson:"status"`
+	ID int				`bson:"id" json:"id"`
+	Username string		`bson:"username" json:"username"`
+	Password string		`bson:"password" json:"password"`
+	FirstName string	`bson:"first_name" json:"first_name"`
+	LastName string		`bson:"last_name" json:"last_name"`
+	Email string		`bson:"email" json:"email"`
+	DateOfBirth string	`bson:"date_of_birth" json:"date_of_birth"`
+	Status int			`bson:"status" json:"status"`
 }
 
 func SaveUser(username, password, firstName, lastName, dob, email string) error {
@@ -153,9 +155,21 @@ func GetUsers(q, sortBy, order string, paginateBy, page int64) []User {
 	return returnUsers
 }
 
-func GetTotal() int {
+func GetTotal(q string) int {
 	collection := DB.Database(Database).Collection("users")
+
 	filter := bson.M{}
+	if q != "" {
+		qInt, _ := strconv.Atoi(q)
+		filter = bson.M{"$or": []interface{}{
+			bson.M{"username": primitive.Regex{Pattern: "^" + q, Options: ""}},
+			bson.M{"first_name": primitive.Regex{Pattern: "^" + q, Options: ""}},
+			bson.M{"last_name": primitive.Regex{Pattern: "^" + q, Options: ""}},
+			bson.M{"email": primitive.Regex{Pattern: "^" + q, Options: ""}},
+			bson.M{"id": qInt}},
+		}
+	}
+
 	data, err := collection.CountDocuments(context.Background(), filter)
 
 	if err != nil {
@@ -191,4 +205,37 @@ func UpdateUser(id int, data url.Values) error {
 	}
 
 	return nil
+}
+
+func GetUser(id int) User {
+	collection := DB.Database(Database).Collection("users")
+
+	user := collection.FindOne(context.Background(), bson.M{"id": id})
+
+	var u User
+	_ = user.Decode(&u)
+
+	log.Println(u)
+
+	return u
+}
+
+func GetLoggedUser(token string) User {
+
+	claims := &common.Claims{}
+	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		log.Println(claims.Username)
+		return common.JwtKey, nil
+	})
+
+	if err != nil {
+		return User{}
+	}
+	username := claims.Username
+	collection := DB.Database(Database).Collection("users")
+	user := collection.FindOne(context.Background(), bson.M{"username": username})
+	var u User
+	_ = user.Decode(&u)
+	return u
+
 }

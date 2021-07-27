@@ -42,7 +42,7 @@ func (c User) Index() revel.Result{
 		order = "asc"
 	}
 
-	total := models.GetTotal()
+	total := models.GetTotal(q)
 	log.Println(total)
 
 	users := models.GetUsers(q, sortBy, order, int64(paginateBy), int64(page))
@@ -85,5 +85,24 @@ func (c User) Update() revel.Result {
 	}
 
 	return c.RenderJSON(data)
+}
+
+func (c User) Show() revel.Result {
+
+	id, err := strconv.Atoi(c.Params.Route.Get("id"))
+
+	if err != nil {
+		r := Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	user := models.GetUser(id)
+
+	return c.RenderJSON(user)
 }
 

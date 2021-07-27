@@ -5,6 +5,7 @@ import (
 	"github.com/revel/revel"
 	"log"
 	"net/http"
+	"r_res/app/common"
 	"r_res/app/models"
 	"time"
 )
@@ -27,13 +28,6 @@ type RegistrationStruct struct {
 	DateOfBirth    string                    `json:"date_of_birth"`
 	Email          string                    `json:"email"`
 }
-
-type Claims struct {
-	Username string `json:"username"`
-	jwt.StandardClaims
-}
-
-var JwtKey []byte
 
 func (c Auth) Registration() revel.Result {
 
@@ -88,7 +82,7 @@ func (c Auth) Login() revel.Result {
 
 		expirationTime := time.Now().Add(15 * time.Minute)
 
-		claims := &Claims{
+		claims := &common.Claims{
 			Username: loginStruct.Username,
 			StandardClaims: jwt.StandardClaims{
 				ExpiresAt: expirationTime.Unix(),
@@ -96,7 +90,7 @@ func (c Auth) Login() revel.Result {
 		}
 
 		t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := t.SignedString(JwtKey)
+		tokenString, err := t.SignedString(common.JwtKey)
 		if err != nil {
 			r := LoginResponse {
 				Message: "false",
@@ -131,10 +125,10 @@ type TokenResponse struct {
 func (c Auth) TokenValidation() revel.Result {
 
 	token := c.Request.Header.Get("x-token")
-	claims := &Claims{}
+	claims := &common.Claims{}
 
 	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return JwtKey, nil
+		return common.JwtKey, nil
 	})
 
 	if err != nil {

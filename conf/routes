@@ -13,7 +13,15 @@ POST     /api/v1/auth/login                                  Auth.Login
 POST     /api/v1/auth/registration                           Auth.Registration
 GET      /api/v1/auth/check                                  Auth.TokenValidation
 GET      /api/v1/users                                       User.Index
+GET      /api/v1/users/:id                                   User.Show
 PATCH    /api/v1/users/:id                                   User.Update
+GET      /api/v1/categories                                  Category.Index
+GET      /api/v1/categories/:id                              Category.Show
+POST     /api/v1/categories                                  Category.Create
+PATCH    /api/v1/categories/:id                              Category.Update
+
+
+
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

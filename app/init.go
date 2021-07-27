@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"net/http"
+	"r_res/app/common"
 	"r_res/app/controllers"
 	"r_res/app/models"
 	"time"
@@ -52,6 +53,7 @@ func init() {
 	revel.OnAppStop(LoadJWTVariables)
 
 	revel.InterceptFunc(checkUser, revel.BEFORE, &controllers.User{})
+	revel.InterceptFunc(checkUser, revel.BEFORE, &controllers.Category{})
 }
 
 // HeaderFilter adds common security headers
@@ -120,7 +122,7 @@ func checkUser(c *revel.Controller) revel.Result {
 }
 
 func LoadJWTVariables() {
-	controllers.JwtKey = []byte(revel.Config.StringDefault("jwt.key", "loodloo"))
+	common.JwtKey = []byte(revel.Config.StringDefault("jwt.key", "loodloo"))
 }
 
 type Claims struct {
@@ -133,7 +135,7 @@ func isLoggedIn(c *revel.Controller) bool {
 	claims := &Claims{}
 
 	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return controllers.JwtKey, nil
+		return common.JwtKey, nil
 	})
 	if err != nil {
 		return false
