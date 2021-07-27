@@ -44,11 +44,17 @@ func (c Category) Index() revel.Result {
 
 	categories := models.GetCategories(order, sortBy, q, int64(paginateBy), int64(page))
 
+
 	r := ResponseCategories{
 		Page:       page,
 		PaginateBy: paginateBy,
 		Total:      total,
-		Items: &categories,
+		Items: 		&categories,
+	}
+
+	if categories == nil {
+		emptyCategory := make([]models.Category, 0)
+		r.Items = &emptyCategory
 	}
 
 	return c.RenderJSON(r)

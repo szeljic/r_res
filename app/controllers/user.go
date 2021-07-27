@@ -48,10 +48,15 @@ func (c User) Index() revel.Result{
 	users := models.GetUsers(q, sortBy, order, int64(paginateBy), int64(page))
 
 	r := ResponseUsers{
-		Page: page,
+		Page: 		page,
 		PaginateBy: paginateBy,
-		Items: &users,
-		Total: total,
+		Items: 		&users,
+		Total: 		total,
+	}
+
+	if users == nil {
+		emptyUser := make([]models.User, 0)
+		r.Items = &emptyUser
 	}
 
 	return c.RenderJSON(r)
