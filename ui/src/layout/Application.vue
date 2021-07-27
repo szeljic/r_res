@@ -35,7 +35,7 @@
 
 				<v-list-item to="/rezervacije">
 					<v-list-item-icon>
-						<v-icon>mdi-pencil</v-icon>
+						<v-icon>mdi-newspaper</v-icon>
 					</v-list-item-icon>
 					<v-list-item-content>
 						<v-list-item-title>Rezervacije</v-list-item-title>

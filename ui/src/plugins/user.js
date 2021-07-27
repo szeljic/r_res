@@ -58,9 +58,8 @@ class User
 		this.vue.$http({
 			url: '/api/v1/auth/check',
 			method: 'GET'
-		}).then(d =>
+		}).then(() =>
 		{
-			console.log(d);
 		}).catch(async () =>
 		{
 			await this.store.dispatch('user/logged', false);
