@@ -21,7 +21,7 @@ type ResponseUsers struct {
 	Page int				`json:"page"`
 	PaginateBy int			`json:"paginateBy"`
 	Total int				`json:"total"`
-	Users *[]models.User	`json:"users"`
+	Items *[]models.User	`json:"items"`
 }
 func (c User) Index() revel.Result{
 	q := c.Params.Query.Get("q")
@@ -50,7 +50,7 @@ func (c User) Index() revel.Result{
 	r := ResponseUsers{
 		Page: page,
 		PaginateBy: paginateBy,
-		Users: &users,
+		Items: &users,
 		Total: total,
 	}
 

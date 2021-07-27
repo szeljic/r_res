@@ -17,7 +17,7 @@ type ResponseCategories struct {
 	Page int						`json:"page"`
 	PaginateBy int					`json:"paginateBy"`
 	Total int						`json:"total"`
-	Categories *[]models.Category	`json:"categories"`
+	Items *[]models.Category		`json:"items"`
 }
 
 func (c Category) Index() revel.Result {
@@ -48,7 +48,7 @@ func (c Category) Index() revel.Result {
 		Page:       page,
 		PaginateBy: paginateBy,
 		Total:      total,
-		Categories: &categories,
+		Items: &categories,
 	}
 
 	return c.RenderJSON(r)
