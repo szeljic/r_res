@@ -16,7 +16,7 @@ import (
 type User struct {
 	ID int				`bson:"id" json:"id"`
 	Username string		`bson:"username" json:"username"`
-	Password string		`bson:"password" json:"password"`
+	Password string		`bson:"password" json:"-"`
 	FirstName string	`bson:"first_name" json:"first_name"`
 	LastName string		`bson:"last_name" json:"last_name"`
 	Email string		`bson:"email" json:"email"`
