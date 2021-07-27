@@ -8,6 +8,7 @@ import Bus from '@/plugins/bus';
 import Http from '@/plugins/http';
 import Store from '@/plugins/store';
 import User from '@/plugins/user';
+import Common from '@/plugins/common';
 
 import router from './router';
 
@@ -16,6 +17,7 @@ Vue.use(new Store());
 Vue.use(new Validate());
 Vue.use(new Http());
 Vue.use(new User());
+Vue.use(new Common());
 
 Vue.config.productionTip = false;
 

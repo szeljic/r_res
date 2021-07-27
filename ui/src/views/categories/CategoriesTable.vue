@@ -3,9 +3,9 @@
 		<v-row dense>
 			<v-col>
 				<v-toolbar dense elevation="2">
-					<v-toolbar-title>Korisnici</v-toolbar-title>
+					<v-toolbar-title>Kategorije</v-toolbar-title>
 					<v-spacer></v-spacer>
-					<v-btn icon to="/korisnici/dodaj">
+					<v-btn icon @click="showForm()">
 						<v-icon>mdi-plus</v-icon>
 					</v-btn>
 					<v-btn icon @click.prevent="fetch">
@@ -29,15 +29,12 @@
 					<template v-slot:item="{item}">
 						<tr>
 							<td class="text-center">{{ item.id }}</td>
-							<td>{{ item.first_name }} {{ item.last_name }}</td>
-							<td>{{ item.username }}</td>
-							<td>{{ item.email }}</td>
-							<td>{{ item.date_of_birth }}</td>
+							<td>{{ item.name }}</td>
+							<td>{{ item.description }}</td>
+							<td>{{ item.created_by }}</td>
+							<td>{{ item.created_at }}</td>
 							<td class="text-center">
-								<status-icon v-model="item.status"></status-icon>
-							</td>
-							<td class="text-center">
-								<v-btn small :to="`/korisnici/uredi/${item.id}`" icon>
+								<v-btn small :to="`/kategorije/uredi/${item.id}`" icon>
 									<v-icon>mdi-pencil</v-icon>
 								</v-btn>
 							</td>
@@ -46,12 +43,21 @@
 				</v-data-table>
 			</v-col>
 		</v-row>
+
+		<v-dialog v-model="form.show" persistent max-width="640">
+			<category-form-component></category-form-component>
+		</v-dialog>
 	</v-container>
 </template>
 
 <script>
+	import CategoryFormComponent from '@/views/categories/CategoryFormComponent';
+
 	export default {
 		name: 'UsersTable',
+		components: {
+			CategoryFormComponent
+		},
 		data()
 		{
 			return {
@@ -61,25 +67,18 @@
 					width: 100,
 					align: 'center'
 				}, {
-					text: 'Ime i prezime',
-					value: 'first_name'
+					text: 'Naziv',
+					value: 'name'
 				}, {
-					text: 'Korisnicko ime',
-					value: 'username',
-					width: 240
+					text: 'Kratak opis',
+					value: 'description'
 				}, {
-					text: 'Email',
-					value: 'email',
+					text: 'Napravio',
+					value: 'created_by',
 					width: 300
 				}, {
-					text: 'Datum rodjenja',
-					value: 'date_of_birth',
-					width: 140
-				}, {
-					text: 'Status',
-					value: 'statue',
-					align: 'center',
-					width: 90
+					text: 'Datum pravljenja',
+					value: 'created_at'
 				}, {
 					text: '',
 					value: null,
@@ -90,7 +89,11 @@
 				}],
 				items: [],
 				total: null,
-				loading: false
+				loading: false,
+				form: {
+					show: false,
+					id: null
+				}
 			};
 		},
 		created()
@@ -103,13 +106,18 @@
 				this.loading = true;
 
 				const {data} = await this.$http({
-					url: '/api/v1/users'
+					url: '/api/v1/categories'
 				});
 
 				this.total = data.total;
-				this.items = data.items;
+				this.items = data.items || [];
 
 				this.loading = false;
+			},
+			showForm()
+			{
+				this.form.id = null;
+				this.form.show = true;
 			}
 		}
 	};
