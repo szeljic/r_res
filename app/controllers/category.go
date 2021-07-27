@@ -60,6 +60,11 @@ func (c Category) Index() revel.Result {
 	return c.RenderJSON(r)
 }
 
+type CreateStruct struct {
+	Name		string `json:"name"`
+	Description string `json:"description"`
+}
+
 func (c Category) Create() revel.Result {
 
 	user := models.GetLoggedUser(c.Request.Header.Get("x-token"))
@@ -73,29 +78,29 @@ func (c Category) Create() revel.Result {
 		return c.RenderJSON(r)
 	}
 
-	name := c.Params.Get("name")
-	if name == "" {
+	var createStruct CreateStruct
+	err := c.Params.BindJSON(&createStruct)
+
+	if createStruct.Name == "" {
 		r := Response{
 			Message: "Ime je obavezno polje!",
 			Code:    0,
 		}
 		c.RenderJSON(r)
 	}
-	description := c.Params.Form.Get("description")
 
-	if description == "" {
+	if createStruct.Description == "" {
 		r := Response{
 			Message: "Opis je obavezno polje!",
 			Code:    0,
 		}
 		c.RenderJSON(r)
 	}
-
 	createdAt := time.Now()
 
 	log.Println(createdAt)
 
-	err := models.SaveCategory(name, description, user.ID, createdAt)
+	err = models.SaveCategory(createStruct.Name, createStruct.Description, user.ID, createdAt)
 	log.Println(err)
 
 	return c.RenderJSON(true)
