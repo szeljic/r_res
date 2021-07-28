@@ -150,5 +150,30 @@ func GetCategory(id int) Category {
 	log.Println(c)
 
 	return c
+}
 
+func UpdateCategory(id int, data map[string]string) error {
+
+	collection := DB.Database(Database).Collection("categories")
+	var set bson.D
+
+	for key, value := range data {
+		v, err := strconv.Atoi(value)
+		if err != nil {
+			set = append(set, bson.E{Key: key, Value: value})
+		} else {
+			set = append(set, bson.E{Key: key, Value: v})
+		}
+	}
+
+	_, err := collection.UpdateOne(context.Background(),
+		bson.M{"id": id},
+		bson.D{
+			{"$set", set},
+		})
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

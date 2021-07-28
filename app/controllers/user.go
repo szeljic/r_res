@@ -71,6 +71,16 @@ func (c User) Update() revel.Result {
 	var data map[string]string
 	_ = json.Unmarshal(rq, &data)
 
+	if len(data) == 0 {
+		r := Response{
+			Message: "Empty data",
+			Code:    0,
+		}
+
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
 	id, err := strconv.Atoi(c.Params.Route.Get("id"))
 
 	if err != nil {

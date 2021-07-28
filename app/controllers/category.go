@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"github.com/revel/revel"
 	"log"
 	"net/http"
@@ -81,6 +82,14 @@ func (c Category) Create() revel.Result {
 	var createStruct CreateStruct
 	err := c.Params.BindJSON(&createStruct)
 
+	if err != nil {
+		r := Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+		c.RenderJSON(r)
+	}
+
 	if createStruct.Name == "" {
 		r := Response{
 			Message: "Ime je obavezno polje!",
@@ -97,20 +106,47 @@ func (c Category) Create() revel.Result {
 		c.RenderJSON(r)
 	}
 	createdAt := time.Now()
-
-	log.Println(createdAt)
-
 	err = models.SaveCategory(createStruct.Name, createStruct.Description, user.ID, createdAt)
-	log.Println(err)
 
 	return c.RenderJSON(true)
 }
 
 func (c Category) Update() revel.Result {
 
+	rq := c.Params.JSON
+	var data map[string]string
+	_ = json.Unmarshal(rq, &data)
 
+	if len(data) == 0 {
+		r := Response{
+			Message: "Empty data",
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
 
-	return c.RenderJSON(true)
+	id, err := strconv.Atoi(c.Params.Route.Get("id"))
+	if err != nil {
+		r := Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	err = models.UpdateCategory(id, data)
+	if err != nil {
+		r := Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	return c.RenderJSON(data)
 }
 
 func (c Category) Show() revel.Result {
