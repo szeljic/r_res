@@ -177,3 +177,14 @@ func UpdateCategory(id int, data map[string]string) error {
 	}
 	return nil
 }
+
+func DeleteCategory(id int) int64 {
+	collection := DB.Database(Database).Collection("categories")
+	result, err := collection.DeleteOne(context.Background(), bson.M{"id": id})
+
+	if err != nil {
+		return 0
+	}
+
+	return result.DeletedCount
+}

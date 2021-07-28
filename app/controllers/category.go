@@ -21,6 +21,8 @@ type ResponseCategories struct {
 	Items *[]models.Category		`json:"items"`
 }
 
+
+
 func (c Category) Index() revel.Result {
 
 	q := c.Params.Query.Get("q")
@@ -152,7 +154,6 @@ func (c Category) Update() revel.Result {
 func (c Category) Show() revel.Result {
 
 	id, err := strconv.Atoi(c.Params.Route.Get("id"))
-
 	if err != nil {
 		r := Response{
 			Message: err.Error(),
@@ -164,4 +165,33 @@ func (c Category) Show() revel.Result {
 
 	category := models.GetCategory(id)
 	return c.RenderJSON(category)
+}
+
+func (c Category) Delete() revel.Result {
+
+	var r Response
+
+	id, err := strconv.Atoi(c.Params.Route.Get("id"))
+	if err != nil {
+		r = Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	n := models.DeleteCategory(id)
+	if n > 0 {
+		r = Response{
+			Message: "Success",
+			Code:    200,
+		}
+	} else {
+		r = Response{
+			Message: "Record not found!",
+			Code:    0,
+		}
+	}
+	return c.RenderJSON(r)
 }

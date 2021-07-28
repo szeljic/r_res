@@ -19,6 +19,7 @@ GET      /api/v1/categories                                  Category.Index
 GET      /api/v1/categories/:id                              Category.Show
 POST     /api/v1/categories                                  Category.Create
 PATCH    /api/v1/categories/:id                              Category.Update
+DELETE    /api/v1/categories/:id                             Category.Delete
 
 
 
