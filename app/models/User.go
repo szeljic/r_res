@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 	"log"
-	"net/url"
 	"r_res/app/common"
 	"strconv"
 )
@@ -179,16 +178,16 @@ func GetTotal(q string) int {
 	return int(data)
 }
 
-func UpdateUser(id int, data url.Values) error {
+func UpdateUser(id int, data map[string]string) error {
 
 	collection := DB.Database(Database).Collection("users")
 
 	var set bson.D
 
 	for key, value := range data {
-		v, err := strconv.Atoi(value[0])
+		v, err := strconv.Atoi(value)
 		if err != nil {
-			set = append(set, bson.E{Key: key, Value: value[0]})
+			set = append(set, bson.E{Key: key, Value: value})
 		} else {
 			set = append(set, bson.E{Key: key, Value: v})
 		}

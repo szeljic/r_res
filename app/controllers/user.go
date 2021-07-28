@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"github.com/revel/revel"
 	"log"
 	"net/http"
@@ -62,9 +63,13 @@ func (c User) Index() revel.Result{
 	return c.RenderJSON(r)
 }
 
+
+
 func (c User) Update() revel.Result {
 
-	data := c.Params.Form
+	rq := c.Params.JSON
+	var data map[string]string
+	_ = json.Unmarshal(rq, &data)
 
 	id, err := strconv.Atoi(c.Params.Route.Get("id"))
 

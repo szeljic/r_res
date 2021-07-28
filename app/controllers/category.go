@@ -122,12 +122,10 @@ func (c Category) Show() revel.Result {
 			Message: err.Error(),
 			Code:    0,
 		}
-
 		c.Response.Status = http.StatusBadRequest
 		return c.RenderJSON(r)
 	}
 
 	category := models.GetCategory(id)
-
 	return c.RenderJSON(category)
 }
