@@ -41,7 +41,7 @@ func SaveUser(username, password, firstName, lastName, dob, email string) error 
 
 	_, err = collection.InsertOne(context.Background(),
 		bson.M{
-			"id": maxId() + 1,
+			"id": userMaxID() + 1,
 			"username": username,
 			"password": password,
 			"first_name": firstName,
@@ -86,7 +86,7 @@ func CheckCredentials(username, password string) int {
 	return user.ID
 }
 
-func maxId() int {
+func userMaxID() int {
 
 	collection := DB.Database(Database).Collection("users")
 

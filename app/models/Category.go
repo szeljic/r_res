@@ -34,7 +34,7 @@ func SaveCategory(name, description string, createdBy int, createdAt time.Time) 
 	collection = DB.Database(Database).Collection("categories")
 	_, err = collection.InsertOne(context.Background(),
 		bson.M{
-			"id": categoryMaxId() + 1,
+			"id": categoryMaxID() + 1,
 			"name": name,
 			"description": description,
 			"created_by": createdBy,
@@ -49,7 +49,7 @@ func SaveCategory(name, description string, createdBy int, createdAt time.Time) 
 	return nil
 }
 
-func categoryMaxId() int {
+func categoryMaxID() int {
 	collection := DB.Database(Database).Collection("categories")
 
 	findOptions := options.Find()
