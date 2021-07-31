@@ -64,8 +64,9 @@ func (c Category) Index() revel.Result {
 }
 
 type CreateStruct struct {
-	Name		string `json:"name"`
-	Description string `json:"description"`
+	Name				string 						`json:"name"`
+	Description 		string 						`json:"description"`
+	SpecificFields		[]models.SpecificField		`json:"specific_fields"`
 }
 
 func (c Category) Create() revel.Result {
@@ -83,6 +84,9 @@ func (c Category) Create() revel.Result {
 
 	var createStruct CreateStruct
 	err := c.Params.BindJSON(&createStruct)
+
+	log.Println("------0000-------")
+	log.Println(createStruct)
 
 	if err != nil {
 		r := Response{
@@ -108,7 +112,7 @@ func (c Category) Create() revel.Result {
 		c.RenderJSON(r)
 	}
 	createdAt := time.Now()
-	err = models.SaveCategory(createStruct.Name, createStruct.Description, user.ID, createdAt)
+	err = models.SaveCategory(createStruct.Name, createStruct.Description, createStruct.SpecificFields, user.ID, createdAt)
 
 	return c.RenderJSON(true)
 }
