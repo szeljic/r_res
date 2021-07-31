@@ -5,15 +5,26 @@
 				<v-toolbar dense elevation="2">
 					<v-toolbar-title>Kategorije</v-toolbar-title>
 					<v-spacer></v-spacer>
-					<v-btn icon @click="showForm()">
+					<v-btn icon @click="showForm()" :disabled="editing">
 						<v-icon>mdi-plus</v-icon>
 					</v-btn>
-					<v-btn icon @click.prevent="fetch">
+					<v-btn icon @click.prevent="fetch" :disabled="editing">
 						<v-icon>mdi-refresh</v-icon>
 					</v-btn>
 				</v-toolbar>
 			</v-col>
 		</v-row>
+
+		<v-row dense v-if="form.show">
+			<v-col>
+				<category-form-component
+					:id="form.id"
+					@success="success"
+					@close="form.show = false"
+				></category-form-component>
+			</v-col>
+		</v-row>
+
 		<v-row dense>
 			<v-col>
 				<v-data-table
@@ -34,19 +45,35 @@
 							<td>{{ item.created_by }}</td>
 							<td>{{ item.created_at }}</td>
 							<td class="text-center">
-								<v-btn small :to="`/kategorije/uredi/${item.id}`" icon>
-									<v-icon>mdi-pencil</v-icon>
-								</v-btn>
+								<table-menu-btn :disabled="editing">
+									<v-list dense>
+										<v-list-item-group>
+											<v-list-item @click.prevent="showForm(item)">
+												<v-list-item-icon>
+													<v-icon>mdi-pencil</v-icon>
+												</v-list-item-icon>
+												<v-list-item-content>
+													<v-list-item-title>Uredi</v-list-item-title>
+												</v-list-item-content>
+											</v-list-item>
+
+											<v-list-item>
+												<v-list-item-icon>
+													<v-icon>mdi-delete-forever-outline</v-icon>
+												</v-list-item-icon>
+												<v-list-item-content>
+													<v-list-item-title>Briši</v-list-item-title>
+												</v-list-item-content>
+											</v-list-item>
+										</v-list-item-group>
+									</v-list>
+								</table-menu-btn>
 							</td>
 						</tr>
 					</template>
 				</v-data-table>
 			</v-col>
 		</v-row>
-
-		<v-dialog v-model="form.show" persistent max-width="640">
-			<category-form-component></category-form-component>
-		</v-dialog>
 	</v-container>
 </template>
 
@@ -100,6 +127,12 @@
 		{
 			this.fetch();
 		},
+		computed: {
+			editing()
+			{
+				return this.form.show && this.form.id !== null;
+			}
+		},
 		methods: {
 			async fetch()
 			{
@@ -114,10 +147,16 @@
 
 				this.loading = false;
 			},
-			showForm()
+			showForm(item)
 			{
-				this.form.id = null;
+				this.form.id = item ? item.id : null;
 				this.form.show = true;
+			},
+			success()
+			{
+				this.fetch();
+
+				this.form.show = false;
 			}
 		}
 	};
