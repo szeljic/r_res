@@ -22,6 +22,7 @@ type Category struct {
 
 type SpecificField struct {
 	Name 		string		`bson:"name" json:"name"`
+	SCName		string		`bson:"sc_name" json:"sc_name"`
 	Required 	bool		`bson:"required" json:"required"`
 	DataType	string		`bson:"data_type" json:"data_type"`
 }
@@ -105,15 +106,15 @@ func GetCategories(order, sortBy, q string, paginateBy, page int64) []Category {
 		}
 	}
 
-	users, err := collection.Find(context.Background(), filter, findOptions)
+	categories, err := collection.Find(context.Background(), filter, findOptions)
 
 	if err != nil {
 		panic("Something went wrong!")
 	}
 	var returnCategories []Category
-	for users.Next(context.Background()) {
+	for categories.Next(context.Background()) {
 		var category Category
-		if err = users.Decode(&category); err != nil {
+		if err = categories.Decode(&category); err != nil {
 			panic(err)
 		}
 		returnCategories = append(returnCategories, category)

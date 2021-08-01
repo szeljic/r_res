@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"r_res/app/models"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -111,6 +112,13 @@ func (c Category) Create() revel.Result {
 		}
 		c.RenderJSON(r)
 	}
+
+	for key, value := range createStruct.SpecificFields {
+		field := strings.ToLower(value.Name)
+		field = strings.ReplaceAll(field, " ", "_")
+		createStruct.SpecificFields[key].SCName = field
+	}
+
 	createdAt := time.Now()
 	err = models.SaveCategory(createStruct.Name, createStruct.Description, createStruct.SpecificFields, user.ID, createdAt)
 
