@@ -59,8 +59,19 @@ func (c Resource) Index() revel.Result {
 }
 func (c Resource) Show() revel.Result {
 
+	id, err := strconv.Atoi(c.Params.Route.Get("id"))
+	if err != nil {
+		r := Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
 
-	return c.RenderJSON(true)
+	resource := models.GetResource(id)
+	return c.RenderJSON(resource)
+
 }
 func (c Resource) Create() revel.Result {
 
@@ -124,11 +135,67 @@ func (c Resource) Create() revel.Result {
 }
 func (c Resource) Update() revel.Result {
 
+	rq := c.Params.JSON
+	var data map[string]interface{}
+	_ = json.Unmarshal(rq, &data)
 
-	return c.RenderJSON(true)
+	if len(data) == 0 {
+		r := Response{
+			Message: "Empty data",
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	id, err := strconv.Atoi(c.Params.Route.Get("id"))
+	if err != nil {
+		r := Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	err = models.UpdateResource(id, data)
+	if err != nil {
+		r := Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	return c.RenderJSON(data)
 }
 func (c Resource) Delete() revel.Result {
 
+	var r Response
 
-	return c.RenderJSON(true)
+	id, err := strconv.Atoi(c.Params.Route.Get("id"))
+	if err != nil {
+		r = Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	n := models.DeleteResource(id)
+	if n > 0 {
+		r = Response{
+			Message: "Success",
+			Code:    200,
+		}
+	} else {
+		c.Response.Status = http.StatusBadRequest
+		r = Response{
+			Message: "Record not found!",
+			Code:    0,
+		}
+	}
+	return c.RenderJSON(r)
 }

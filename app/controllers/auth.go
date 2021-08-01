@@ -80,7 +80,7 @@ func (c Auth) Login() revel.Result {
 	userID := models.CheckCredentials(loginStruct.Username, loginStruct.Password)
 	if userID > 0 {
 
-		expirationTime := time.Now().Add(15 * time.Minute)
+		expirationTime := time.Now().Add(1500 * time.Minute)
 
 		claims := &common.Claims{
 			Username: loginStruct.Username,
