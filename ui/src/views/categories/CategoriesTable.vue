@@ -111,7 +111,7 @@
 					value: null,
 					sortable: false,
 					filterable: false,
-					width: 104,
+					width: 60,
 					align: 'center'
 				}],
 				items: [],
@@ -138,14 +138,22 @@
 			{
 				this.loading = true;
 
-				const {data} = await this.$http({
-					url: '/api/v1/categories'
-				});
+				try {
+					const {data} = await this.$http({
+						url: '/api/v1/categories'
+					});
 
-				this.total = data.total;
-				this.items = data.items || [];
+					this.total = data.total;
 
-				this.loading = false;
+					this.items = data.items || [];
+				} catch (e)
+				{
+					console.warn(e);
+				}
+				finally
+				{
+					this.loading = false;
+				}
 			},
 			showForm(item)
 			{

@@ -4,19 +4,76 @@
 			<v-card-title>Dodaj</v-card-title>
 			<v-divider></v-divider>
 			<v-card-text>
-				<v-text-field
-					outlined
-					v-model="item.name"
-					label="Ime"
-					:rules="[$v.required]"
-				></v-text-field>
-				<v-textarea
-					outlined
-					v-model="item.description"
-					label="Opis"
-					:rules="[$v.required]"
-					counter
-				></v-textarea>
+				<v-row>
+					<v-col>
+						<v-text-field
+							outlined
+							v-model="item.name"
+							label="Ime"
+							:rules="[$v.required]"
+						></v-text-field>
+						<v-textarea
+							outlined
+							v-model="item.description"
+							label="Opis"
+							:rules="[$v.required]"
+							counter
+						></v-textarea>
+					</v-col>
+					<v-divider vertical></v-divider>
+					<v-col>
+						<v-row dense v-for="(s, idx) in item.specific_fields" :key="`sf-${idx}`">
+							<v-col>
+								<v-sheet outlined class="pa-3">
+									<v-row dense>
+										<v-col class="flex-md-grow-1">
+											<v-text-field
+												v-model="s.name"
+												label="Ime"
+												outlined
+												dense
+												hide-details
+											></v-text-field>
+										</v-col>
+
+										<v-col class="flex-md-grow-1">
+											<v-select
+												v-model="s.data_type"
+												label="Tip podatka"
+												:items="typeItems"
+												outlined
+												dense
+												hide-details
+											></v-select>
+										</v-col>
+
+										<v-col class="flex-shrink-1 flex-grow-0">
+											<v-checkbox
+												v-model="s.required"
+												label="Obavezno"
+												dense
+												hide-details
+											></v-checkbox>
+										</v-col>
+
+										<v-col class="flex-shrink-1 flex-grow-0">
+											<v-btn icon @click.prevent="removeTypeItem(s)">
+												<v-icon dense>mdi-delete</v-icon>
+											</v-btn>
+										</v-col>
+
+									</v-row>
+								</v-sheet>
+							</v-col>
+						</v-row>
+						<v-row>
+							<v-spacer></v-spacer>
+							<v-btn small @click.prevent="addTypeItem" icon>
+								<v-icon>mdi-plus</v-icon>
+							</v-btn>
+						</v-row>
+					</v-col>
+				</v-row>
 			</v-card-text>
 			<v-divider></v-divider>
 			<v-card-actions>
@@ -40,8 +97,18 @@
 				valid: false,
 				item: {
 					name: null,
-					description: null
-				}
+					description: null,
+					specific_fields: []
+				},
+				typeItems: [
+					{text: 'Cijeli broj', value: 'integer'},
+					{text: 'Razlomljeni broj', value: 'float'},
+					{text: 'Datum', value: 'date'},
+					{text: 'Kratak tekst', value: 'short_text'},
+					{text: 'Duži tekst', value: 'long_text'},
+					{text: 'Čeker', value: 'checkbox'},
+					{text: 'Radio dugme', value: 'radio'}
+				]
 			};
 		},
 		props: {
@@ -80,7 +147,8 @@
 						url: '/api/v1/categories' + (this.id ? '/' + this.id : ''),
 						data: {
 							name: this.item.name,
-							description: this.item.description
+							description: this.item.description,
+							specific_fields: this.item.specific_fields.filter(item => item.name && item.data_type)
 						},
 						method: this.id ? 'PATCH' : 'POST'
 					});
@@ -112,6 +180,18 @@
 				{
 					this.loading = false;
 				}
+			},
+			addTypeItem()
+			{
+				this.item.specific_fields.push({
+					name: null,
+					data_type: null,
+					required: false
+				});
+			},
+			removeTypeItem(s)
+			{
+				this.item.specific_fields = this.item.specific_fields.filter(item => item !== s);
 			}
 		}
 	};
