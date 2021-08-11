@@ -59,7 +59,7 @@ func (c User) Index() revel.Result{
 		emptyUser := make([]models.User, 0)
 		r.Items = &emptyUser
 	}
-
+	c.Response.Status = http.StatusOK
 	return c.RenderJSON(r)
 }
 
@@ -103,8 +103,13 @@ func (c User) Update() revel.Result {
 		c.Response.Status = http.StatusBadRequest
 		return c.RenderJSON(r)
 	}
+	r := Response{
+		Message: "Success",
+		Code:    200,
+	}
 
-	return c.RenderJSON(data)
+	c.Response.Status = http.StatusOK
+	return c.RenderJSON(r)
 }
 
 func (c User) Show() revel.Result {
@@ -127,6 +132,7 @@ func (c User) Show() revel.Result {
 		return c.RenderJSON(make(map[string]string))
 	}
 
+	c.Response.Status = http.StatusOK
 	return c.RenderJSON(&user)
 }
 

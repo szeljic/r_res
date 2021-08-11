@@ -40,9 +40,7 @@ func (c Resource) Index() revel.Result {
 	}
 
 	total := models.GetTotalResources(q)
-
 	resources := models.GetResources(order, sortBy, q, int64(paginateBy), int64(page))
-
 	r := ResponseResources{
 		Page:       page,
 		PaginateBy: paginateBy,
@@ -55,8 +53,10 @@ func (c Resource) Index() revel.Result {
 		r.Items = emptyCategory
 	}
 
+	c.Response.Status = http.StatusOK
 	return c.RenderJSON(r)
 }
+
 func (c Resource) Show() revel.Result {
 
 	id, err := strconv.Atoi(c.Params.Route.Get("id"))
@@ -70,18 +70,16 @@ func (c Resource) Show() revel.Result {
 	}
 
 	resource := models.GetResource(id)
-
+	c.Response.Status = http.StatusOK
 	if resource == nil {
 		return c.RenderJSON(make(map[string]string))
 	}
-
 	return c.RenderJSON(&resource)
-
 }
+
 func (c Resource) Create() revel.Result {
 
 	user := models.GetLoggedUser(c.Request.Header.Get("x-token"))
-
 	if user == (models.User{}) {
 		log.Println("USER IS NOT LOGGED IN!!!")
 		r := TokenResponse{
@@ -106,7 +104,12 @@ func (c Resource) Create() revel.Result {
 
 	cID, ok := data["category_id"].(float64)
 	if !ok {
-		log.Println("AAA", cID)
+		r := Response{
+			Message: "Nesto nije u redu sa kategorijom!",
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
 	}
 
 	categoryID := int(cID)
@@ -138,6 +141,7 @@ func (c Resource) Create() revel.Result {
 
 	return c.RenderJSON(r)
 }
+
 func (c Resource) Update() revel.Result {
 
 	rq := c.Params.JSON
@@ -172,13 +176,17 @@ func (c Resource) Update() revel.Result {
 		c.Response.Status = http.StatusBadRequest
 		return c.RenderJSON(r)
 	}
-
-	return c.RenderJSON(data)
+	c.Response.Status = http.StatusOK
+	r := Response{
+		Message: "Success!",
+		Code:    200,
+	}
+	return c.RenderJSON(r)
 }
+
 func (c Resource) Delete() revel.Result {
 
 	var r Response
-
 	id, err := strconv.Atoi(c.Params.Route.Get("id"))
 	if err != nil {
 		r = Response{
@@ -190,8 +198,8 @@ func (c Resource) Delete() revel.Result {
 	}
 
 	n := models.DeleteResource(id)
-	log.Println(n)
 	if n > 0 {
+		c.Response.Status = http.StatusOK
 		r = Response{
 			Message: "Success",
 			Code:    200,

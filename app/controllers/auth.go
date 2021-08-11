@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/revel/revel"
-	"log"
 	"net/http"
 	"r_res/app/common"
 	"r_res/app/models"
@@ -74,6 +73,7 @@ func (c Auth) Login() revel.Result {
 			Message: err.Error(),
 			Code:    -1,
 		}
+		c.Response.Status = http.StatusBadRequest
 		return c.RenderJSON(r)
 	}
 
@@ -114,7 +114,7 @@ func (c Auth) Login() revel.Result {
 		Message: "Korisnicko ime ili lozinka nisu odgovarajuci!",
 		Code: 403,
 	}
-
+	c.Response.Status = http.StatusBadRequest
 	return c.RenderJSON(r)
 }
 type TokenResponse struct {
@@ -140,7 +140,6 @@ func (c Auth) TokenValidation() revel.Result {
 			c.Response.Status = http.StatusUnauthorized
 			return c.RenderJSON(r)
 		}
-		log.Println(err)
 		c.Response.Status = http.StatusBadRequest
 		return c.RenderJSON(r)
 	}

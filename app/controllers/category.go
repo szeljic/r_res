@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"github.com/revel/revel"
-	"log"
 	"net/http"
 	"r_res/app/models"
 	"strconv"
@@ -61,6 +60,7 @@ func (c Category) Index() revel.Result {
 		r.Items = &emptyCategory
 	}
 
+	c.Response.Status = http.StatusOK
 	return c.RenderJSON(r)
 }
 
@@ -75,7 +75,6 @@ func (c Category) Create() revel.Result {
 	user := models.GetLoggedUser(c.Request.Header.Get("x-token"))
 
 	if user == (models.User{}) {
-		log.Println("USER IS NOT LOGGED IN!!!")
 		r := TokenResponse{
 			Logged: false,
 		}
@@ -86,15 +85,13 @@ func (c Category) Create() revel.Result {
 	var createStruct CreateStruct
 	err := c.Params.BindJSON(&createStruct)
 
-	log.Println("------0000-------")
-	log.Println(createStruct)
-
 	if err != nil {
 		r := Response{
 			Message: err.Error(),
 			Code:    0,
 		}
-		c.RenderJSON(r)
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
 	}
 
 	if createStruct.Name == "" {
@@ -102,7 +99,8 @@ func (c Category) Create() revel.Result {
 			Message: "Ime je obavezno polje!",
 			Code:    0,
 		}
-		c.RenderJSON(r)
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
 	}
 
 	if createStruct.Description == "" {
@@ -110,7 +108,8 @@ func (c Category) Create() revel.Result {
 			Message: "Opis je obavezno polje!",
 			Code:    0,
 		}
-		c.RenderJSON(r)
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
 	}
 
 	for key, value := range createStruct.SpecificFields {
@@ -122,7 +121,12 @@ func (c Category) Create() revel.Result {
 	createdAt := time.Now()
 	err = models.SaveCategory(createStruct.Name, createStruct.Description, createStruct.SpecificFields, user.ID, createdAt)
 
-	return c.RenderJSON(true)
+	r := Response{
+		Message: "Success",
+		Code:    200,
+	}
+	c.Response.Status = http.StatusOK
+	return c.RenderJSON(r)
 }
 
 func (c Category) Update() revel.Result {
@@ -160,7 +164,12 @@ func (c Category) Update() revel.Result {
 		return c.RenderJSON(r)
 	}
 
-	return c.RenderJSON(data)
+	c.Response.Status = http.StatusOK
+	r := Response{
+		Message: "Success!",
+		Code:    200,
+	}
+	return c.RenderJSON(r)
 }
 
 func (c Category) Show() revel.Result {
@@ -178,9 +187,10 @@ func (c Category) Show() revel.Result {
 	category := models.GetCategory(id)
 
 	if category == nil {
+		c.Response.Status = http.StatusOK
 		return c.RenderJSON(make(map[string]string))
 	}
-
+	c.Response.Status = http.StatusOK
 	return c.RenderJSON(&category)
 }
 
@@ -200,11 +210,13 @@ func (c Category) Delete() revel.Result {
 
 	n := models.DeleteCategory(id)
 	if n > 0 {
+		c.Response.Status = http.StatusOK
 		r = Response{
 			Message: "Success",
 			Code:    200,
 		}
 	} else {
+		c.Response.Status = http.StatusBadRequest
 		r = Response{
 			Message: "Record not found!",
 			Code:    0,

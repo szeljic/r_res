@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"github.com/revel/revel"
-	"log"
 	"net/http"
 	"r_res/app/models"
 	"strconv"
@@ -55,6 +54,7 @@ func (c Reservation) Index() revel.Result {
 		r.Items = &emptyReservation
 	}
 
+	c.Response.Status = http.StatusOK
 	return c.RenderJSON(r)
 }
 
@@ -70,6 +70,7 @@ func (c Reservation) Show() revel.Result {
 	}
 
 	reservation := models.GetReservation(id)
+	c.Response.Status = http.StatusOK
 	if reservation == nil {
 		return c.RenderJSON(make(map[string]string))
 	}
@@ -87,7 +88,6 @@ func (c Reservation) Create() revel.Result {
 	user := models.GetLoggedUser(c.Request.Header.Get("x-token"))
 
 	if user == (models.User{}) {
-		log.Println("USER IS NOT LOGGED IN!!!")
 		r := TokenResponse{
 			Logged: false,
 		}
@@ -98,14 +98,12 @@ func (c Reservation) Create() revel.Result {
 	var createReservation CreateReservation
 	err := c.Params.BindJSON(&createReservation)
 
-	log.Println("------0000-------")
-	log.Println(createReservation)
-
 	if err != nil {
 		r := Response{
 			Message: err.Error(),
 			Code:    0,
 		}
+		c.Response.Status = http.StatusBadRequest
 		return c.RenderJSON(r)
 	}
 
@@ -187,7 +185,12 @@ func (c Reservation) Create() revel.Result {
 		return c.RenderJSON(r)
 	}
 
-	return c.RenderJSON(true)
+	r := Response{
+		Message: "Success",
+		Code:    200,
+	}
+	c.Response.Status = http.StatusOK
+	return c.RenderJSON(r)
 }
 
 func (c Reservation) Update() revel.Result {
@@ -299,7 +302,13 @@ func (c Reservation) Update() revel.Result {
 		return c.RenderJSON(r)
 	}
 
-	return c.RenderJSON(data)}
+	c.Response.Status = http.StatusOK
+	r := Response{
+		Message: "Success!",
+		Code:    200,
+	}
+	return c.RenderJSON(r)
+}
 
 func (c Reservation) Delete() revel.Result {
 	var r Response
@@ -316,11 +325,13 @@ func (c Reservation) Delete() revel.Result {
 
 	n := models.DeleteReservation(id)
 	if n > 0 {
+		c.Response.Status = http.StatusOK
 		r = Response{
 			Message: "Success",
 			Code:    200,
 		}
 	} else {
+		c.Response.Status = http.StatusBadRequest
 		r = Response{
 			Message: "Record not found!",
 			Code:    0,
