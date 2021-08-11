@@ -54,6 +54,8 @@ func init() {
 
 	revel.InterceptFunc(checkUser, revel.BEFORE, &controllers.User{})
 	revel.InterceptFunc(checkUser, revel.BEFORE, &controllers.Category{})
+	revel.InterceptFunc(checkUser, revel.BEFORE, &controllers.Reservation{})
+	revel.InterceptFunc(checkUser, revel.BEFORE, &controllers.Resource{})
 }
 
 // HeaderFilter adds common security headers

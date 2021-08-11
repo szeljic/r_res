@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"github.com/mitchellh/mapstructure"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -10,6 +11,15 @@ import (
 	"strconv"
 	"time"
 )
+
+
+
+type Resource struct {
+	ID int											`bson:"id" json:"id"`
+	CreatedAt int64									`bson:"created_at" json:"created_at"`
+	Name string										`bson:"name" json:"name"`
+	User User										`bson:"user" json:"user"`
+}
 
 func SaveResource(data map[string]interface{}, user User, categoryID int) error {
 
@@ -39,6 +49,7 @@ func SaveResource(data map[string]interface{}, user User, categoryID int) error 
 	set = append(set, bson.E{Key: "user", Value: user})
 	set = append(set, bson.E{Key: "category", Value: category})
 	set = append(set, bson.E{Key: "id", Value: resourceMaxID() + 1})
+	set = append(set, bson.E{Key: "created_at", Value: time.Now().Unix()})
 
 	_, err = collection.InsertOne(context.Background(), set)
 	if err != nil {
@@ -225,6 +236,35 @@ func GetResource(id int) map[string]interface{} {
 
 	return r
 }
+
+func GetTrimResource(id int) Resource {
+
+	collection := DB.Database(Database).Collection("resources")
+
+	resource := collection.FindOne(context.Background(), bson.M{"id": id})
+
+	r := make(map[string]interface{})
+	_ = resource.Decode(&r)
+
+	res := Resource{}
+
+	user := User{}
+	err := mapstructure.Decode(r["user"], &user)
+
+	if err != nil {
+		panic(err)
+	}
+
+	res.ID = int(r["id"].(int32))
+	res.Name = r["name"].(string)
+	res.User = user
+	if r["create_at"] != nil {
+		res.CreatedAt = r["created_at"].(int64)
+	}
+
+	return res
+}
+
 func DeleteResource(id int) int64 {
 	collection := DB.Database(Database).Collection("resources")
 	result, err := collection.DeleteOne(context.Background(), bson.M{"id": id})

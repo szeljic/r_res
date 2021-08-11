@@ -29,6 +29,12 @@ POST     /api/v1/resources                                   Resource.Create
 PATCH    /api/v1/resources/:id                               Resource.Update
 DELETE   /api/v1/resources/:id                               Resource.Delete
 
+GET      /api/v1/reservations                                Reservation.Index
+GET      /api/v1/reservations/:id                            Reservation.Show
+POST     /api/v1/reservations                                Reservation.Create
+PATCH    /api/v1/reservations/:id                            Reservation.Update
+DELETE   /api/v1/reservations/:id                            Reservation.Delete
+
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
