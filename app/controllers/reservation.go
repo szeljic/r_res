@@ -70,7 +70,10 @@ func (c Reservation) Show() revel.Result {
 	}
 
 	reservation := models.GetReservation(id)
-	return c.RenderJSON(reservation)
+	if reservation == nil {
+		return c.RenderJSON(make(map[string]string))
+	}
+	return c.RenderJSON(&reservation)
 }
 
 type CreateReservation struct {
@@ -163,8 +166,26 @@ func (c Reservation) Create() revel.Result {
 		return c.RenderJSON(r)
 	}
 
+	if !models.IsResourceAvailable(fromDate.Unix(), toDate.Unix(), createReservation.ResourceID) {
+		r := Response{
+			Message: "Resurs je zauzet u datom periodu!",
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
 	createdAt := time.Now().Unix()
 	err = models.SaveReservation(fromDate.Unix(), toDate.Unix(), createReservation.ResourceID, user.ID, createdAt)
+
+	if err != nil {
+		r := Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
 
 	return c.RenderJSON(true)
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"reflect"
@@ -50,6 +51,7 @@ func SaveResource(data map[string]interface{}, user User, categoryID int) error 
 	set = append(set, bson.E{Key: "category", Value: category})
 	set = append(set, bson.E{Key: "id", Value: resourceMaxID() + 1})
 	set = append(set, bson.E{Key: "created_at", Value: time.Now().Unix()})
+	set = append(set, bson.E{Key: "deleted_at", Value: nil})
 
 	_, err = collection.InsertOne(context.Background(), set)
 	if err != nil {
@@ -163,14 +165,15 @@ func validateDataByCategory(category Category, data map[string]interface{}, acti
 func GetTotalResources(q string) int {
 	collection := DB.Database(Database).Collection("resources")
 
-	filter := bson.M{}
+	filter := bson.M{"deleted_at": nil}
 	if q != "" {
 		qInt, _ := strconv.Atoi(q)
 		filter = bson.M{"$or": []interface{}{
 			bson.M{"name": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"user.username": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"id": qInt},
-			bson.M{"user.id": qInt}},
+			bson.M{"user.id": qInt},
+			bson.M{"deleted_at": nil}},
 		}
 	}
 
@@ -197,14 +200,15 @@ func GetResources(order, sortBy, q string, paginateBy, page int64) []map[string]
 	findOptions.SetLimit(paginateBy)
 	findOptions.SetSkip(paginateBy * (page - 1))
 
-	filter := bson.M{}
+	filter := bson.M{"deleted_at": nil}
 	if q != "" {
 		qInt, _ := strconv.Atoi(q)
 		filter = bson.M{"$or": []interface{}{
 			bson.M{"name": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"user.username": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"id": qInt},
-			bson.M{"user.id": qInt}},
+			bson.M{"user.id": qInt},
+			bson.M{"deleted_at": nil}},
 		}
 	}
 
@@ -229,27 +233,36 @@ func GetResource(id int) map[string]interface{} {
 
 	collection := DB.Database(Database).Collection("resources")
 
-	resource := collection.FindOne(context.Background(), bson.M{"id": id})
+	resource := collection.FindOne(context.Background(), bson.M{"id": id, "deleted_at": nil})
 
 	r := make(map[string]interface{})
-	_ = resource.Decode(&r)
+	err := resource.Decode(&r)
+
+	if err != nil {
+		return nil
+	}
 
 	return r
 }
 
-func GetTrimResource(id int) Resource {
+func GetTrimResource(id int) *Resource {
 
 	collection := DB.Database(Database).Collection("resources")
 
-	resource := collection.FindOne(context.Background(), bson.M{"id": id})
+	resource := collection.FindOne(context.Background(), bson.M{"id": id, "deleted_at": nil})
+
 
 	r := make(map[string]interface{})
-	_ = resource.Decode(&r)
+	err := resource.Decode(&r)
+
+	if err != nil {
+		return nil
+	}
 
 	res := Resource{}
 
 	user := User{}
-	err := mapstructure.Decode(r["user"], &user)
+	err = mapstructure.Decode(r["user"], &user)
 
 	if err != nil {
 		panic(err)
@@ -262,18 +275,45 @@ func GetTrimResource(id int) Resource {
 		res.CreatedAt = r["created_at"].(int64)
 	}
 
-	return res
+	return &res
 }
 
 func DeleteResource(id int) int64 {
-	collection := DB.Database(Database).Collection("resources")
-	result, err := collection.DeleteOne(context.Background(), bson.M{"id": id})
+
+	session, err := DB.StartSession()
+	if err != nil {
+		panic(err)
+	}
+	defer session.EndSession(context.Background())
+
+	var modified int64
+	err = mongo.WithSession(context.Background(), session, func(sessionContext mongo.SessionContext) error {
+		collection := DB.Database(Database).Collection("resources")
+		now := time.Now().Unix()
+		result, err := collection.UpdateOne(context.Background(),
+			bson.M{"id": id},
+			bson.D{
+				{"$set", bson.M{"deleted_at": now},
+				}})
+
+		if err != nil {
+			return err
+		}
+
+		err = DeleteReservationsOfResource(id)
+
+		if err != nil {
+			return err
+		}
+		modified = result.ModifiedCount
+		return nil
+	})
 
 	if err != nil {
 		return 0
 	}
 
-	return result.DeletedCount
+	return modified
 }
 
 func UpdateResource(id int, data map[string]interface{}) error {
@@ -315,6 +355,32 @@ func UpdateResource(id int, data map[string]interface{}) error {
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func DeleteResourcesOfCategory(categoryID int) error {
+	collection := DB.Database(Database).Collection("resources")
+	findOptions := options.Find()
+	filter := bson.M{"category.id": categoryID}
+	resources, err := collection.Find(context.Background(), filter, findOptions)
+	log.Println("D")
+
+	if err != nil {
+		return err
+	}
+	log.Println("E")
+
+	for resources.Next(context.Background()) {
+		log.Println("AAS")
+		log.Println("AAS")
+		var resource Resource
+		if err = resources.Decode(&resource); err != nil {
+			return err
+		}
+		log.Println(resource.ID)
+		go DeleteResource(resource.ID)
 	}
 
 	return nil

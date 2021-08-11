@@ -206,17 +206,19 @@ func UpdateUser(id int, data map[string]string) error {
 	return nil
 }
 
-func GetUser(id int) User {
+func GetUser(id int) *User {
 	collection := DB.Database(Database).Collection("users")
 
 	user := collection.FindOne(context.Background(), bson.M{"id": id})
 
 	var u User
-	_ = user.Decode(&u)
+	err := user.Decode(&u)
 
-	log.Println(u)
+	if err != nil {
+		return nil
+	}
 
-	return u
+	return &u
 }
 
 func GetLoggedUser(token string) User {

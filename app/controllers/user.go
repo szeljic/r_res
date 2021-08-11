@@ -123,6 +123,10 @@ func (c User) Show() revel.Result {
 
 	user := models.GetUser(id)
 
-	return c.RenderJSON(user)
+	if user == nil {
+		return c.RenderJSON(make(map[string]string))
+	}
+
+	return c.RenderJSON(&user)
 }
 

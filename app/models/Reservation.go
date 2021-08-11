@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"strconv"
+	"time"
 )
 
 type Reservation struct {
@@ -33,14 +34,15 @@ func GetReservations(order, sortBy, q string, paginateBy, page int64) []Reservat
 	findOptions.SetLimit(paginateBy)
 	findOptions.SetSkip(paginateBy * (page - 1))
 
-	filter := bson.M{}
+	filter := bson.M{"deleted_at": nil}
 	if q != "" {
 		qInt, _ := strconv.Atoi(q)
 		filter = bson.M{"$or": []interface{}{
 			bson.M{"name": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"user.username": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"id": qInt},
-			bson.M{"user.id": qInt}},
+			bson.M{"user.id": qInt},
+			bson.M{"deleted_at": nil}},
 		}
 	}
 
@@ -62,16 +64,17 @@ func GetReservations(order, sortBy, q string, paginateBy, page int64) []Reservat
 }
 
 func GetTotalReservations(q string) int {
-	collection := DB.Database(Database).Collection("categories")
+	collection := DB.Database(Database).Collection("reservations")
 
-	filter := bson.M{}
+	filter := bson.M{"deleted_at": nil}
 	if q != "" {
 		qInt, _ := strconv.Atoi(q)
 		filter = bson.M{"$or": []interface{}{
 			bson.M{"name": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"user.username": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"id": qInt},
-			bson.M{"user.id": qInt}},
+			bson.M{"user.id": qInt},
+			bson.M{"deleted_at": nil}},
 		}
 	}
 
@@ -97,6 +100,10 @@ func SaveReservation(fromDate, toDate int64, resourceID int, createdBy int, crea
 
 	resource := GetTrimResource(resourceID)
 
+	if resource == nil {
+		return &errorString{"Resurs ne postoji!"}
+	}
+
 	collection = DB.Database(Database).Collection("reservations")
 	user.Password = ""
 	_, err = collection.InsertOne(context.Background(),
@@ -108,6 +115,7 @@ func SaveReservation(fromDate, toDate int64, resourceID int, createdBy int, crea
 			"created_at": 	createdAt,
 			"user": 		user,
 			"resource": 	resource,
+			"deleted_at": 	nil,
 		})
 
 	if err != nil {
@@ -141,18 +149,20 @@ func reservationMaxID() int {
 	return 0
 }
 
-func GetReservation(id int) Reservation {
+func GetReservation(id int) *Reservation {
 
 	collection := DB.Database(Database).Collection("reservations")
 
-	reservation := collection.FindOne(context.Background(), bson.M{"id": id})
+	reservation := collection.FindOne(context.Background(), bson.M{"id": id, "deleted_at": nil})
 
 	var r Reservation
-	_ = reservation.Decode(&r)
+	err := reservation.Decode(&r)
 
-	log.Println(r)
+	if err != nil {
+		return nil
+	}
 
-	return r
+	return &r
 }
 
 func UpdateReservation(id int, data map[string]interface{}) error {
@@ -191,11 +201,63 @@ func UpdateReservation(id int, data map[string]interface{}) error {
 
 func DeleteReservation(id int) int64 {
 	collection := DB.Database(Database).Collection("reservations")
-	result, err := collection.DeleteOne(context.Background(), bson.M{"id": id})
+	//result, err := collection.DeleteOne(context.Background(), bson.M{"id": id})
+
+	now := time.Now().Unix()
+	result, err := collection.UpdateOne(context.Background(),
+		bson.M{"id": id},
+		bson.D{
+			{"$set", bson.M{"deleted_at": now},
+			}})
 
 	if err != nil {
 		return 0
 	}
 
-	return result.DeletedCount
+	return result.ModifiedCount
+}
+
+func IsResourceAvailable(fromDate, toDate int64, resourceID int) bool {
+	collection := DB.Database(Database).Collection("reservations")
+	findOptions := options.Find()
+	filter := bson.M{"resource.id": resourceID}
+	reservations, err := collection.Find(context.Background(), filter, findOptions)
+	if err != nil {
+		panic("Something went wrong!")
+	}
+
+	log.Println(reservations, err, resourceID)
+
+	for reservations.Next(context.Background()) {
+		log.Println("b")
+		var reservation Reservation
+		if err = reservations.Decode(&reservation); err != nil {
+			panic(err)
+		}
+
+		if (reservation.ToDate > fromDate && reservation.FromDate <= fromDate) || (reservation.FromDate < toDate && reservation.FromDate >= fromDate) {
+			return false
+		}
+	}
+	return true
+}
+
+func DeleteReservationsOfResource(resourceID int) error {
+	collection := DB.Database(Database).Collection("reservations")
+	findOptions := options.Find()
+	filter := bson.M{"resource.id": resourceID}
+	reservations, err := collection.Find(context.Background(), filter, findOptions)
+	if err != nil {
+		return err
+	}
+	for reservations.Next(context.Background()) {
+		log.Println("b")
+		var reservation Reservation
+		if err = reservations.Decode(&reservation); err != nil {
+			return err
+		}
+		go DeleteReservation(reservation.ID)
+	}
+
+	return nil
 }

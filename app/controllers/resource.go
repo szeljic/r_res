@@ -70,7 +70,12 @@ func (c Resource) Show() revel.Result {
 	}
 
 	resource := models.GetResource(id)
-	return c.RenderJSON(resource)
+
+	if resource == nil {
+		return c.RenderJSON(make(map[string]string))
+	}
+
+	return c.RenderJSON(&resource)
 
 }
 func (c Resource) Create() revel.Result {
@@ -185,6 +190,7 @@ func (c Resource) Delete() revel.Result {
 	}
 
 	n := models.DeleteResource(id)
+	log.Println(n)
 	if n > 0 {
 		r = Response{
 			Message: "Success",

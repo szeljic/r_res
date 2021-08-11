@@ -4,6 +4,7 @@ import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"strconv"
@@ -18,6 +19,7 @@ type Category struct {
 	CreatedAt time.Time								`bson:"created_at" json:"created_at"`
 	User User										`bson:"user" json:"user"`
 	SpecificFields []SpecificField 					`bson:"specific_fields" json:"specific_fields"`
+	DeletedAt int64 								`bson:"deleted_at" json:"deleted_at"`
 }
 
 type SpecificField struct {
@@ -48,6 +50,7 @@ func SaveCategory(name, description string, specificFields []SpecificField, crea
 			"created_at": createdAt,
 			"user": user,
 			"specific_fields":specificFields,
+			"deleted_at": nil,
 		})
 
 	if err != nil {
@@ -95,14 +98,15 @@ func GetCategories(order, sortBy, q string, paginateBy, page int64) []Category {
 	findOptions.SetLimit(paginateBy)
 	findOptions.SetSkip(paginateBy * (page - 1))
 
-	filter := bson.M{}
+	filter := bson.M{"deleted_at": nil}
 	if q != "" {
 		qInt, _ := strconv.Atoi(q)
 		filter = bson.M{"$or": []interface{}{
 			bson.M{"name": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"user.username": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"id": qInt},
-			bson.M{"user.id": qInt}},
+			bson.M{"user.id": qInt},
+			bson.M{"deleted_at": nil}},
 		}
 	}
 
@@ -126,14 +130,15 @@ func GetCategories(order, sortBy, q string, paginateBy, page int64) []Category {
 func GetTotalCategories(q string) int {
 	collection := DB.Database(Database).Collection("categories")
 
-	filter := bson.M{}
+	filter := bson.M{"deleted_at": nil}
 	if q != "" {
 		qInt, _ := strconv.Atoi(q)
 		filter = bson.M{"$or": []interface{}{
 			bson.M{"name": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"user.username": primitive.Regex{Pattern: "^" + q, Options: ""}},
 			bson.M{"id": qInt},
-			bson.M{"user.id": qInt}},
+			bson.M{"user.id": qInt},
+			bson.M{"deleted_at": nil}},
 		}
 	}
 
@@ -146,18 +151,20 @@ func GetTotalCategories(q string) int {
 	return int(data)
 }
 
-func GetCategory(id int) Category {
+func GetCategory(id int) *Category {
 
 	collection := DB.Database(Database).Collection("categories")
 
-	category := collection.FindOne(context.Background(), bson.M{"id": id})
+	category := collection.FindOne(context.Background(), bson.M{"id": id, "deleted_at": nil})
 
 	var c Category
-	_ = category.Decode(&c)
+	err := category.Decode(&c)
 
-	log.Println(c)
+	if err != nil {
+		return nil
+	}
 
-	return c
+	return &c
 }
 
 func UpdateCategory(id int, data map[string]string) error {
@@ -166,6 +173,11 @@ func UpdateCategory(id int, data map[string]string) error {
 	var set bson.D
 
 	for key, value := range data {
+
+		if key == "deleted_at" {
+			continue
+		}
+
 		v, err := strconv.Atoi(value)
 		if err != nil {
 			set = append(set, bson.E{Key: key, Value: value})
@@ -187,12 +199,43 @@ func UpdateCategory(id int, data map[string]string) error {
 }
 
 func DeleteCategory(id int) int64 {
-	collection := DB.Database(Database).Collection("categories")
-	result, err := collection.DeleteOne(context.Background(), bson.M{"id": id})
+
+	session, err := DB.StartSession()
+	if err != nil {
+		panic(err)
+	}
+	defer session.EndSession(context.Background())
+
+	var modified int64
+	err = mongo.WithSession(context.Background(), session, func(sessionContext mongo.SessionContext) error {
+		collection := DB.Database(Database).Collection("categories")
+		now := time.Now().Unix()
+		result, err := collection.UpdateOne(context.Background(),
+			bson.M{"id": id},
+			bson.D{
+				{"$set", bson.M{"deleted_at": now},
+				}})
+		log.Println("A")
+		if err != nil {
+			return err
+		}
+		log.Println("B")
+
+		err = DeleteResourcesOfCategory(id)
+
+		if err != nil {
+			return err
+		}
+		log.Println("C")
+
+		modified = result.ModifiedCount
+		return nil
+	})
 
 	if err != nil {
 		return 0
 	}
 
-	return result.DeletedCount
+	return modified
+
 }

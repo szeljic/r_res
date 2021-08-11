@@ -176,7 +176,12 @@ func (c Category) Show() revel.Result {
 	}
 
 	category := models.GetCategory(id)
-	return c.RenderJSON(category)
+
+	if category == nil {
+		return c.RenderJSON(make(map[string]string))
+	}
+
+	return c.RenderJSON(&category)
 }
 
 func (c Category) Delete() revel.Result {
