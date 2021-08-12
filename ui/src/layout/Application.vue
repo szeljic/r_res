@@ -47,6 +47,15 @@
 		<v-app-bar app clipped-left>
 			<v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 			<v-toolbar-title>Rezervator</v-toolbar-title>
+			<v-spacer></v-spacer>
+			<v-tooltip left>
+				<template v-slot:activator="{ on, attr }">
+					<v-btn icon v-on="on" v-bind="attr" @click.prevent="logout">
+						<v-icon>mdi-logout</v-icon>
+					</v-btn>
+				</template>
+				<span>Izloguj se</span>
+			</v-tooltip>
 		</v-app-bar>
 
 		<v-main>
@@ -65,6 +74,12 @@
 			return {
 				drawer: true
 			};
+		},
+		methods: {
+			logout()
+			{
+				this.$user.logout();
+			}
 		}
 	};
 </script>

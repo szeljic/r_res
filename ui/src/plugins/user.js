@@ -24,21 +24,36 @@ class User
 
 	async login(username, password)
 	{
-		const response = await this.vue.$http({
-			url: '/api/v1/auth/login',
-			data: {username, password},
-			method: 'POST'
-		});
-
-		if (response.data.code === 200)
+		try
 		{
-			Cookies.set(cookieToken, response.data.access_token);
+			const response = await this.vue.$http({
+				url: '/api/v1/auth/login',
+				data: {username, password},
+				method: 'POST'
+			});
 
-			await this.store.dispatch('user/token', response.data.access_token);
-		} else if (response.data.code === 403)
+			if (response.data.code === 200)
+			{
+				Cookies.set(cookieToken, response.data.access_token);
+
+				await this.store.dispatch('user/token', response.data.access_token);
+			} else if (response.data.code === 403)
+			{
+				this.store.commit('user/token', null);
+			}
+		} catch (e)
 		{
-			this.store.commit('user/token', null);
+			console.warn(e);
 		}
+	}
+
+	async logout()
+	{
+		Cookies.remove(cookieToken);
+
+		await this.store.commit('user/token', null);
+
+		await this.check();
 	}
 
 	async check()

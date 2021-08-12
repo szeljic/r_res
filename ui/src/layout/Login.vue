@@ -27,8 +27,8 @@
 			<v-divider></v-divider>
 			<v-card-actions>
 				<v-spacer></v-spacer>
-				<v-btn color="primary" type="submit">Login</v-btn>
-				<v-btn @click.prevent="reset">Očisti</v-btn>
+				<v-btn color="primary" type="submit" :disabled="disabled">Login</v-btn>
+				<v-btn @click.prevent="reset" :disabled="disabled">Očisti</v-btn>
 			</v-card-actions>
 		</v-card>
 	</v-form>
