@@ -361,12 +361,7 @@ func UpdateResource(id int, data map[string]interface{}) error {
 	collection = DB.Database(Database).Collection("resources")
 	var set bson.D
 	for key, value := range data {
-		v, err := strconv.Atoi(value.(string))
-		if err != nil {
-			set = append(set, bson.E{Key: key, Value: value})
-		} else {
-			set = append(set, bson.E{Key: key, Value: v})
-		}
+		set = append(set, bson.E{Key: key, Value: value})
 	}
 
 	if len(data) < 1 {
