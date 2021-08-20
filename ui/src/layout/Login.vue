@@ -1,7 +1,7 @@
 <template>
 	<v-form @submit.prevent="submit" ref="frm" :disabled="disabled" v-model="valid">
 		<v-card>
-			<v-card-title>Login</v-card-title>
+			<v-card-title>Prijava</v-card-title>
 			<v-divider></v-divider>
 			<v-card-text>
 				<v-row dense>

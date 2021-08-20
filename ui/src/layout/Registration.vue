@@ -5,7 +5,7 @@
 			<v-divider></v-divider>
 			<v-card-text>
 				<v-row dense>
-					<v-col>
+					<v-col sm="12" md="12" lg="6" xl="6">
 						<v-text-field
 							outlined
 							label="Ime"
@@ -13,7 +13,7 @@
 							:rules="[$v.required, $v.minLength(4)]"
 						></v-text-field>
 					</v-col>
-					<v-col>
+					<v-col sm="12" md="12" lg="6" xl="6">
 						<v-text-field
 							outlined
 							label="Prezime"
