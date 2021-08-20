@@ -167,24 +167,14 @@ func GetCategory(id int) *Category {
 	return &c
 }
 
-func UpdateCategory(id int, data map[string]string) error {
+func UpdateCategory(id int, name, description string, specificFields []SpecificField) error {
 
 	collection := DB.Database(Database).Collection("categories")
 	var set bson.D
 
-	for key, value := range data {
-
-		if key == "deleted_at" {
-			continue
-		}
-
-		v, err := strconv.Atoi(value)
-		if err != nil {
-			set = append(set, bson.E{Key: key, Value: value})
-		} else {
-			set = append(set, bson.E{Key: key, Value: v})
-		}
-	}
+	set = append(set, bson.E{Key: "name", Value: name})
+	set = append(set, bson.E{Key: "description", Value: description})
+	set = append(set, bson.E{Key: "specific_fields", Value: specificFields})
 
 	_, err := collection.UpdateOne(context.Background(),
 		bson.M{"id": id},

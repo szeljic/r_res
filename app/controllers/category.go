@@ -154,7 +154,43 @@ func (c Category) Update() revel.Result {
 		return c.RenderJSON(r)
 	}
 
-	err = models.UpdateCategory(id, data)
+	var createStruct CreateStruct
+	err = c.Params.BindJSON(&createStruct)
+
+	if err != nil {
+		r := Response{
+			Message: err.Error(),
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	if createStruct.Name == "" {
+		r := Response{
+			Message: "Ime je obavezno polje!",
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	if createStruct.Description == "" {
+		r := Response{
+			Message: "Opis je obavezno polje!",
+			Code:    0,
+		}
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(r)
+	}
+
+	for key, value := range createStruct.SpecificFields {
+		field := strings.ToLower(value.Name)
+		field = strings.ReplaceAll(field, " ", "_")
+		createStruct.SpecificFields[key].SCName = field
+	}
+
+	err = models.UpdateCategory(id, createStruct.Name, createStruct.Description, createStruct.SpecificFields)
 	if err != nil {
 		r := Response{
 			Message: err.Error(),

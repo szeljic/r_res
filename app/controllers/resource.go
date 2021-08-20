@@ -38,9 +38,13 @@ func (c Resource) Index() revel.Result {
 	if order == "" {
 		order = "asc"
 	}
+	categoryId, err := strconv.Atoi(c.Params.Query.Get("category_id"))
+	if err != nil {
+		categoryId = 0
+	}
 
-	total := models.GetTotalResources(q)
-	resources := models.GetResources(order, sortBy, q, int64(paginateBy), int64(page))
+	total := models.GetTotalResources(q, categoryId)
+	resources := models.GetResources(order, sortBy, q, int64(paginateBy), int64(page), categoryId)
 	r := ResponseResources{
 		Page:       page,
 		PaginateBy: paginateBy,

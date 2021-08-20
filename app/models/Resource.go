@@ -162,19 +162,27 @@ func validateDataByCategory(category Category, data map[string]interface{}, acti
 	return nil
 }
 
-func GetTotalResources(q string) int {
+func GetTotalResources(q string, categoryId int) int {
 	collection := DB.Database(Database).Collection("resources")
 
-	filter := bson.M{"deleted_at": nil}
+	filter := bson.D{bson.E{
+		Key:   "deleted_at",
+		Value: nil,
+	}}
 	if q != "" {
 		qInt, _ := strconv.Atoi(q)
-		filter = bson.M{"$or": []interface{}{
-			bson.M{"name": primitive.Regex{Pattern: "^" + q, Options: ""}},
-			bson.M{"user.username": primitive.Regex{Pattern: "^" + q, Options: ""}},
-			bson.M{"id": qInt},
-			bson.M{"user.id": qInt},
-			bson.M{"deleted_at": nil}},
+		filter = bson.D{{"$or", bson.A{
+			bson.D{{"name", primitive.Regex{Pattern: "^" + q, Options: ""}}},
+			bson.D{{"user.username", primitive.Regex{Pattern: "^" + q, Options: ""}}},
+			bson.D{{"id", qInt}},
+			bson.D{{"user.id", qInt}},
+		},
+		}, {Key: "deleted_at", Value: nil},
 		}
+	}
+
+	if categoryId > 0 {
+		filter = append(filter, bson.E{Key: "category_id", Value: categoryId})
 	}
 
 	data, err := collection.CountDocuments(context.Background(), filter)
@@ -186,7 +194,7 @@ func GetTotalResources(q string) int {
 	return int(data)
 }
 
-func GetResources(order, sortBy, q string, paginateBy, page int64) []map[string]interface{} {
+func GetResources(order, sortBy, q string, paginateBy, page int64, categoryId int) []map[string]interface{} {
 
 	collection := DB.Database(Database).Collection("resources")
 
@@ -200,17 +208,28 @@ func GetResources(order, sortBy, q string, paginateBy, page int64) []map[string]
 	findOptions.SetLimit(paginateBy)
 	findOptions.SetSkip(paginateBy * (page - 1))
 
-	filter := bson.M{"deleted_at": nil}
+	filter := bson.D{bson.E{
+		Key:   "deleted_at",
+		Value: nil,
+	}}
 	if q != "" {
 		qInt, _ := strconv.Atoi(q)
-		filter = bson.M{"$or": []interface{}{
-			bson.M{"name": primitive.Regex{Pattern: "^" + q, Options: ""}},
-			bson.M{"user.username": primitive.Regex{Pattern: "^" + q, Options: ""}},
-			bson.M{"id": qInt},
-			bson.M{"user.id": qInt},
-			bson.M{"deleted_at": nil}},
+		filter = bson.D{{"$or", bson.A{
+					bson.D{{"name", primitive.Regex{Pattern: "^" + q, Options: ""}}},
+					bson.D{{"user.username", primitive.Regex{Pattern: "^" + q, Options: ""}}},
+					bson.D{{"id", qInt}},
+					bson.D{{"user.id", qInt}},
+				},
+			}, {Key: "deleted_at", Value: nil},
 		}
 	}
+
+	if categoryId > 0 {
+		filter = append(filter, bson.E{Key: "category_id", Value: categoryId})
+	}
+
+	log.Println("KOJAJJAJAJA")
+	log.Println(filter)
 
 	resources, err := collection.Find(context.Background(), filter, findOptions)
 	if err != nil {
