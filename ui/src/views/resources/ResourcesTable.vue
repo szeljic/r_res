@@ -3,7 +3,7 @@
 		<v-row dense>
 			<v-col>
 				<v-toolbar dense elevation="2">
-					<v-toolbar-title>Kategorije</v-toolbar-title>
+					<v-toolbar-title>Resursi</v-toolbar-title>
 					<v-spacer></v-spacer>
 					<v-btn icon @click="showForm()" v-if="!form.show">
 						<v-icon>mdi-plus</v-icon>
@@ -17,11 +17,25 @@
 
 		<v-row dense v-if="form.show">
 			<v-col>
-				<category-form-component
+				<resource-form-component
 					:id="form.id"
 					@success="success"
 					@close="form.show = false"
-				></category-form-component>
+					:pre-category="category"
+				></resource-form-component>
+			</v-col>
+		</v-row>
+
+		<v-row dense v-if="!form.show">
+			<v-col md="3">
+				<select-category
+					label="Kategorija"
+					v-model="category"
+					:disabled="loading"
+					@change="fetch()"
+					hide-details
+					solo
+				></select-category>
 			</v-col>
 		</v-row>
 
@@ -45,7 +59,7 @@
 							<td>{{ item.created_by }}</td>
 							<td>{{ item.created_at }}</td>
 							<td class="text-center">
-								<table-menu-btn>
+								<table-menu-btn :disabled="editing">
 									<v-list dense>
 										<v-list-item-group>
 											<v-list-item @click.prevent="showForm(item)">
@@ -78,44 +92,23 @@
 </template>
 
 <script>
-	import CategoryFormComponent from '@/views/categories/CategoryFormComponent';
+	import ResourceFormComponent from '@/views/resources/ResourceFormComponent';
+	import SelectCategory from '@/components/SelectCategory';
 
 	export default {
-		name: 'UsersTable',
+		name: 'ResourcesTable',
 		components: {
-			CategoryFormComponent
+			ResourceFormComponent,
+			SelectCategory
 		},
 		data()
 		{
 			return {
-				headers: [{
-					text: '#',
-					value: 'ID',
-					width: 100,
-					align: 'center'
-				}, {
-					text: 'Naziv',
-					value: 'name'
-				}, {
-					text: 'Kratak opis',
-					value: 'description'
-				}, {
-					text: 'Napravio',
-					value: 'created_by',
-					width: 300
-				}, {
-					text: 'Datum pravljenja',
-					value: 'created_at'
-				}, {
-					text: '',
-					value: null,
-					sortable: false,
-					filterable: false,
-					width: 60,
-					align: 'center'
-				}],
+				staticHeaders: [],
 				items: [],
 				total: null,
+				category: null,
+				categories: [],
 				loading: false,
 				form: {
 					show: false,
@@ -127,14 +120,26 @@
 		{
 			this.fetch();
 		},
+		computed: {
+			headers()
+			{
+				return [...this.staticHeaders];
+			}
+		},
 		methods: {
 			async fetch()
 			{
+				if (this.category === null)
+				{
+					return;
+				}
+
 				this.loading = true;
 
-				try {
+				try
+				{
 					const {data} = await this.$http({
-						url: '/api/v1/categories'
+						url: '/api/v1/resources'
 					});
 
 					this.total = data.total;
@@ -143,8 +148,7 @@
 				} catch (e)
 				{
 					console.warn(e);
-				}
-				finally
+				} finally
 				{
 					this.loading = false;
 				}

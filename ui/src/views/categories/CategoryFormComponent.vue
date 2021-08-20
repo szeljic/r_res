@@ -9,7 +9,7 @@
 						<v-text-field
 							outlined
 							v-model="item.name"
-							label="Ime"
+							label="Naziv"
 							:rules="[$v.required]"
 						></v-text-field>
 						<v-textarea
@@ -29,7 +29,7 @@
 										<v-col class="flex-md-grow-1">
 											<v-text-field
 												v-model="s.name"
-												label="Ime"
+												label="Naziv"
 												outlined
 												dense
 												hide-details
@@ -148,7 +148,12 @@
 						data: {
 							name: this.item.name,
 							description: this.item.description,
-							specific_fields: this.item.specific_fields.filter(item => item.name && item.data_type)
+							specific_fields: this.item.specific_fields.filter(item => item.name && item.data_type).map(item =>
+							{
+								delete item.sc_name;
+
+								return item;
+							})
 						},
 						method: this.id ? 'PATCH' : 'POST'
 					});
