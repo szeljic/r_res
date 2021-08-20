@@ -119,6 +119,8 @@ func validateDataByCategory(category Category, data map[string]interface{}, acti
 			continue
 		}
 
+		log.Println("BORA", value.DataType, value)
+
 		switch value.DataType {
 		case "integer":
 			_, ok := data[value.SCName].(float64)
@@ -153,7 +155,12 @@ func validateDataByCategory(category Category, data map[string]interface{}, acti
 				return &errorString{value.Name + " nije ispravan podatak!"}
 			}
 			break
-
+		case "checkbox":
+			_, ok := data[value.SCName].(bool)
+			if !ok {
+				return &errorString{value.Name + " nije ispravan podatak!"}
+			}
+			break
 		default:
 			return &errorString{"Nepoznat tip podatka!"}
 		}
