@@ -43,10 +43,18 @@
 						<v-text-field
 							:label="f.name"
 							outlined
-							dense
 							hide-details
 							:rules="f.required ? [[$v.required]] : []"
 							v-if="f.data_type === 'float'"
+							v-model="item.fields[f.sc_name]"
+						></v-text-field>
+
+						<v-text-field
+							:label="f.name"
+							outlined
+							hide-details
+							:rules="f.required ? [[$v.required]] : []"
+							v-if="f.data_type === 'short_text'"
 							v-model="item.fields[f.sc_name]"
 						></v-text-field>
 					</v-col>
@@ -123,6 +131,7 @@
 								value = Number(value);
 								break;
 							case 'text':
+							case 'short_text':
 							case 'string':
 								value = String(value);
 						}

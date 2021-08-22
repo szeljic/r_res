@@ -9,6 +9,7 @@ import Http from '@/plugins/http';
 import Store from '@/plugins/store';
 import User from '@/plugins/user';
 import Common from '@/plugins/common';
+import DateTime from '@/plugins/date-time';
 
 import router from './router';
 
@@ -18,6 +19,7 @@ Vue.use(new Validate());
 Vue.use(new Http());
 Vue.use(new User());
 Vue.use(new Common());
+Vue.use(new DateTime());
 
 Vue.config.productionTip = false;
 

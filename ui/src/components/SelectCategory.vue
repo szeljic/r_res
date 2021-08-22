@@ -38,6 +38,8 @@
 						text: c.name,
 						value: c.id
 					}));
+
+					this.$emit('update:categories', data.items);
 				} catch (e)
 				{
 					console.warn(e);

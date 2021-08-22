@@ -35,11 +35,21 @@
 					@change="fetch()"
 					hide-details
 					solo
+					:categories.sync="categories"
 				></select-category>
+			</v-col>
+			<v-col md="3">
+				<v-text-field
+					label="Trazi"
+					solo
+					hide-details
+					v-model="search"
+					@keyup="fetch()"
+				></v-text-field>
 			</v-col>
 		</v-row>
 
-		<v-row dense v-if="!form.show">
+		<v-row dense v-if="!form.show && items.length > 0">
 			<v-col>
 				<v-data-table
 					:headers="headers"
@@ -55,11 +65,15 @@
 						<tr>
 							<td class="text-center">{{ item.id }}</td>
 							<td>{{ item.name }}</td>
-							<td>{{ item.description }}</td>
-							<td>{{ item.created_by }}</td>
-							<td>{{ item.created_at }}</td>
+							<td>{{ item.user.first_name + ' ' + item.user.last_name }}</td>
+							<td>{{ $format(new Date(item.created_at * 1000), 'dd.MM.yyyy. HH:mm:ss') }}</td>
+
+							<td v-for="f in selectedSpecificFields" :key="f.sc_name">
+								{{ item[f.sc_name] || '' }}
+							</td>
+
 							<td class="text-center">
-								<table-menu-btn :disabled="editing">
+								<table-menu-btn>
 									<v-list dense>
 										<v-list-item-group>
 											<v-list-item @click.prevent="showForm(item)">
@@ -104,11 +118,30 @@
 		data()
 		{
 			return {
-				staticHeaders: [],
+				staticHeaders: [{
+					text: '#',
+					value: 'id',
+					width: 60,
+					align: 'center',
+					sortable: false
+				}, {
+					text: 'Naziv',
+					value: 'name',
+					width: 180
+				}, {
+					text: 'Napravio',
+					value: 'user',
+					width: 180
+				}, {
+					text: 'Datum',
+					value: 'created_at',
+					width: 180
+				}],
 				items: [],
 				total: null,
 				category: null,
 				categories: [],
+				search: null,
 				loading: false,
 				form: {
 					show: false,
@@ -123,7 +156,37 @@
 		computed: {
 			headers()
 			{
-				return [...this.staticHeaders];
+				let headers = [...this.staticHeaders];
+
+				if (this.category !== null)
+				{
+					if (this.selectedCategory)
+					{
+						this.selectedSpecificFields.forEach(f =>
+							headers.push({
+								text: f.name,
+								value: f.sc_name
+							}));
+					}
+				}
+
+				headers.push({
+					text: '',
+					value: 'action',
+					width: 100
+				});
+
+				return headers;
+			},
+			selectedCategory()
+			{
+				return this.categories.find(item => item.id === this.category);
+			},
+			selectedSpecificFields()
+			{
+				const c = this.selectedCategory;
+
+				return c ? c.specific_fields : [];
 			}
 		},
 		methods: {
@@ -139,7 +202,7 @@
 				try
 				{
 					const {data} = await this.$http({
-						url: '/api/v1/resources'
+						url: '/api/v1/resources/?category_id=' + this.category + (this.search ? '&q=' + this.search : '')
 					});
 
 					this.total = data.total;
