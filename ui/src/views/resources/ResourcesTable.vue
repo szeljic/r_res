@@ -85,7 +85,7 @@
 												</v-list-item-content>
 											</v-list-item>
 
-											<v-list-item>
+											<v-list-item @click.prevent="showDelete(item)">
 												<v-list-item-icon>
 													<v-icon>mdi-delete-forever-outline</v-icon>
 												</v-list-item-icon>
@@ -102,6 +102,13 @@
 				</v-data-table>
 			</v-col>
 		</v-row>
+
+		<delete-dialog
+			:show.sync="deleteDialog.show"
+			:url="'/api/v1/resources/' + deleteDialog.id"
+			@success="fetch()"
+		></delete-dialog>
+
 	</v-container>
 </template>
 
@@ -146,6 +153,10 @@
 				form: {
 					show: false,
 					id: null
+				},
+				deleteDialog: {
+					show: false,
+					id: null
 				}
 			};
 		},
@@ -173,7 +184,10 @@
 				headers.push({
 					text: '',
 					value: 'action',
-					width: 100
+					sortable: false,
+					filterable: false,
+					width: 60,
+					align: 'center'
 				});
 
 				return headers;
@@ -226,6 +240,12 @@
 				this.fetch();
 
 				this.form.show = false;
+			},
+			showDelete(item)
+			{
+				this.deleteDialog.id = item.id;
+
+				this.deleteDialog.show = true;
 			}
 		}
 	};

@@ -57,7 +57,7 @@
 												</v-list-item-content>
 											</v-list-item>
 
-											<v-list-item>
+											<v-list-item @click.prevent="showDelete(item)">
 												<v-list-item-icon>
 													<v-icon>mdi-delete-forever-outline</v-icon>
 												</v-list-item-icon>
@@ -74,6 +74,13 @@
 				</v-data-table>
 			</v-col>
 		</v-row>
+
+		<delete-dialog
+			:show.sync="deleteDialog.show"
+			:url="'/api/v1/categories/' + deleteDialog.id"
+			@success="fetch()"
+		></delete-dialog>
+
 	</v-container>
 </template>
 
@@ -108,7 +115,7 @@
 					value: 'created_at'
 				}, {
 					text: '',
-					value: null,
+					value: 'action',
 					sortable: false,
 					filterable: false,
 					width: 60,
@@ -118,6 +125,10 @@
 				total: null,
 				loading: false,
 				form: {
+					show: false,
+					id: null
+				},
+				deleteDialog: {
 					show: false,
 					id: null
 				}
@@ -132,7 +143,8 @@
 			{
 				this.loading = true;
 
-				try {
+				try
+				{
 					const {data} = await this.$http({
 						url: '/api/v1/categories'
 					});
@@ -143,8 +155,7 @@
 				} catch (e)
 				{
 					console.warn(e);
-				}
-				finally
+				} finally
 				{
 					this.loading = false;
 				}
@@ -159,6 +170,12 @@
 				this.fetch();
 
 				this.form.show = false;
+			},
+			showDelete(item)
+			{
+				this.deleteDialog.id = item ? item.id : null;
+
+				this.deleteDialog.show = true;
 			}
 		}
 	};
