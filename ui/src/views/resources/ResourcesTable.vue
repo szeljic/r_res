@@ -68,9 +68,12 @@
 							<td>{{ item.user.first_name + ' ' + item.user.last_name }}</td>
 							<td>{{ $format(new Date(item.created_at * 1000), 'dd.MM.yyyy. HH:mm:ss') }}</td>
 
-							<td v-for="f in selectedSpecificFields" :key="f.sc_name">
-								{{ item[f.sc_name] || '' }}
-							</td>
+							<template v-for="f in selectedSpecificFields">
+								<td v-if="f.data_type === 'boolean'" :key="f.sc_name">
+									<status-icon v-model="item[f.sc_name]"></status-icon>
+								</td>
+								<td v-else :key="f.sc_name">{{ item[f.sc_name] || '' }}</td>
+							</template>
 
 							<td class="text-center">
 								<table-menu-btn>

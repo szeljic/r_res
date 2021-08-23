@@ -1,5 +1,5 @@
 <template>
-	<v-icon>{{v ? 'mdi-check' : 'mdi-remove'}}</v-icon>
+	<v-icon>{{v ? 'mdi-check' : 'mdi-cancel'}}</v-icon>
 </template>
 
 <script>
@@ -14,7 +14,7 @@
 		computed: {
 			v()
 			{
-				return this.value === true || this.value === 1 || this.value !== '';
+				return (this.value === true || this.value === 1) && this.value !== '';
 			}
 		}
 	};

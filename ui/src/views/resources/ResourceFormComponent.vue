@@ -196,6 +196,10 @@
 								break;
 							case 'text':
 							case 'string':
+								value = String(value);
+								break;
+							case 'boolean':
+								break;
 							default:
 								value = String(value);
 						}
@@ -212,7 +216,7 @@
 					me.$emit('success', data);
 				} catch (e)
 				{
-					console.log(e);
+					console.warn(e);
 					me.$emit('failed', e);
 				} finally
 				{
@@ -232,10 +236,7 @@
 					this.item.name = data.name;
 					this.item.category = data.category_id;
 
-					data.category.specific_fields.forEach(f =>
-					{
-						this.item.fields[f.sc_name] = data[f.sc_name];
-					});
+					data.category.specific_fields.forEach(f => this.item.fields[f.sc_name] = data[f.sc_name]);
 				} catch (e)
 				{
 					this.$emit('failed', e);
