@@ -42,7 +42,7 @@
 							<td class="text-center">{{ item.id }}</td>
 							<td>{{ item.name }}</td>
 							<td>{{ item.description }}</td>
-							<td>{{ item.created_by }}</td>
+							<td>{{ item.user.first_name + ' ' + item.user.last_name }}</td>
 							<td>{{ item.created_at }}</td>
 							<td class="text-center">
 								<table-menu-btn>

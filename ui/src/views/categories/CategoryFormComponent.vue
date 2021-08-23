@@ -104,10 +104,9 @@
 					{text: 'Cijeli broj', value: 'integer'},
 					{text: 'Razlomljeni broj', value: 'float'},
 					{text: 'Datum', value: 'date'},
-					{text: 'Kratak tekst', value: 'short_text'},
-					{text: 'Duži tekst', value: 'long_text'},
-					{text: 'Čeker', value: 'checkbox'},
-					{text: 'Radio dugme', value: 'radio'}
+					{text: 'Kratak tekst', value: 'string'},
+					{text: 'Duži tekst', value: 'text'},
+					{text: 'Čeker', value: 'boolean'}
 				]
 			};
 		},

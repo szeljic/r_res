@@ -11,6 +11,7 @@
 							label="Naziv"
 							outlined
 							hide-details
+							:rules="[$v.required]"
 						></v-text-field>
 					</v-col>
 					<v-col sm="12" md="12" lg="6" xl="6">
@@ -21,6 +22,8 @@
 							hide-details
 							@change="changeCategory"
 							@loaded="loadedCategory"
+							:rules="[$v.required]"
+							clearable
 						></select-category>
 					</v-col>
 				</v-row>
@@ -35,7 +38,7 @@
 							:label="f.name"
 							outlined
 							hide-details
-							:rules="f.required ? [[$v.required]] : []"
+							:rules="f.required ? [$v.required] : []"
 							v-if="f.data_type === 'integer'"
 							v-model="item.fields[f.sc_name]"
 						></v-text-field>
@@ -44,7 +47,7 @@
 							:label="f.name"
 							outlined
 							hide-details
-							:rules="f.required ? [[$v.required]] : []"
+							:rules="f.required ? [$v.required] : []"
 							v-if="f.data_type === 'float'"
 							v-model="item.fields[f.sc_name]"
 						></v-text-field>
@@ -53,10 +56,55 @@
 							:label="f.name"
 							outlined
 							hide-details
-							:rules="f.required ? [[$v.required]] : []"
-							v-if="f.data_type === 'short_text'"
+							:rules="f.required ? [$v.required] : []"
+							v-if="f.data_type === 'string'"
 							v-model="item.fields[f.sc_name]"
 						></v-text-field>
+
+						<v-textarea
+							:label="f.name"
+							outlined
+							hide-details
+							:rules="f.required ? [$v.required] : []"
+							v-if="f.data_type === 'text'"
+							v-model="item.fields[f.sc_name]"
+							counter
+						></v-textarea>
+
+						<v-checkbox
+							:label="f.name"
+							hide-details
+							:rules="f.required ? [$v.required] : []"
+							v-if="f.data_type === 'boolean'"
+							v-model="item.fields[f.sc_name]"
+						></v-checkbox>
+
+						<v-menu
+							v-model="menus[f.sc_name]"
+							:close-on-content-click="false"
+							:nudge-right="40"
+							transition="scale-transition"
+							offset-y
+							min-width="auto"
+							v-if="f.data_type === 'date'"
+						>
+							<template v-slot:activator="{ on, attrs }">
+								<v-text-field
+									:label="f.name"
+									v-model="item.fields[f.sc_name]"
+									outlined
+									prepend-icon="mdi-calendar"
+									readonly
+									v-bind="attrs"
+									v-on="on"
+									clearable
+								></v-text-field>
+							</template>
+							<v-date-picker
+								v-model="item.fields[f.sc_name]"
+								@input="menus[f.sc_name] = false"
+							></v-date-picker>
+						</v-menu>
 					</v-col>
 				</v-row>
 			</v-card-text>
@@ -90,16 +138,34 @@
 					category: null,
 					fields: {}
 				},
-				fields: []
+				fields: [],
+				menus: {}
 			};
 		},
 		props: {
 			preCategory: {
 				type: Number,
 				default: null
+			},
+			id: {
+				type: Number,
+				default: null,
+				required: true
+			}
+		},
+		created()
+		{
+			if (this.id !== null)
+			{
+				this.fetch();
 			}
 		},
 		methods: {
+			reset()
+			{
+				this.$refs.frm.reset();
+				this.$refs.frm.resetValidation();
+			},
 			async submit()
 			{
 				const me = this;
@@ -122,8 +188,6 @@
 					{
 						let value = this.item.fields[f.sc_name];
 
-						console.log(f);
-
 						switch (f.data_type)
 						{
 							case 'integer':
@@ -131,8 +195,8 @@
 								value = Number(value);
 								break;
 							case 'text':
-							case 'short_text':
 							case 'string':
+							default:
 								value = String(value);
 						}
 
@@ -140,9 +204,9 @@
 					});
 
 					const {data} = await this.$http({
-						url: '/api/v1/resources',
+						url: '/api/v1/resources' + (this.id ? '/' + this.id : ''),
 						data: submitData,
-						method: 'POST'
+						method: this.id ? 'PATCH' : 'POST'
 					});
 
 					me.$emit('success', data);
@@ -155,10 +219,37 @@
 					this.loading = false;
 				}
 			},
+			async fetch()
+			{
+				this.loading = true;
+
+				try
+				{
+					const {data} = await this.$http({
+						url: `/api/v1/resources/${this.id}`
+					});
+
+					this.item.name = data.name;
+					this.item.category = data.category_id;
+
+					data.category.specific_fields.forEach(f =>
+					{
+						this.item.fields[f.sc_name] = data[f.sc_name];
+					});
+				} catch (e)
+				{
+					this.$emit('failed', e);
+				} finally
+				{
+					this.loading = false;
+				}
+			},
 			async changeCategory()
 			{
 				if (!this.item.category)
 				{
+					this.fields = [];
+
 					return;
 				}
 
