@@ -8,7 +8,6 @@
 						<v-toolbar flat>
 							<v-toolbar-items>
 								<v-btn dark tile @click="login = true" :color="login ? 'green' : ''" class="mr-2">Prijava</v-btn>
-								<v-spacer></v-spacer>
 								<v-btn dark tile @click="login = false" :color="!login ? 'green' : ''" class="ml-2">Registracija</v-btn>
 							</v-toolbar-items>
 						</v-toolbar>

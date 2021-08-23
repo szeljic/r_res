@@ -1,15 +1,15 @@
 <template>
 	<message-box
 		:title="'Brisanje?'"
-		:message="'Da li zaista želite da obrišete stavku?'"
-		:show.sync="internalShow"
+		:message="'Da li želite da nastavite brisanje?'"
+		:show="internalShow"
 		:loader="loader"
 	>
 		<template v-slot:actions>
 			<v-spacer></v-spacer>
-			<v-btn text color="default" :disabled="loader" @click="$emit('update:show', false)">Odustani</v-btn>
+			<v-btn text color="default" :disabled="loader" @click="internalShow = false">Odustani</v-btn>
 			<v-btn text color="primary" :disabled="loader" @click="perform">
-				<v-icon left small>fas fa-trash-alt</v-icon>
+				<v-icon left small>mdi-delete</v-icon>
 				Briši
 			</v-btn>
 		</template>
@@ -17,12 +17,8 @@
 </template>
 
 <script>
-	import MessageBox from '@/components/MessageBox';
 
 	export default {
-		components: {
-			MessageBox
-		},
 		name: 'delete-dialog',
 		data()
 		{
@@ -77,8 +73,7 @@
 					method: 'DELETE'
 				})
 					.then(() => me.$emit('success'))
-					.catch((reason) =>
-						me.$emit('fail', reason))
+					.catch((reason) => me.$emit('fail', reason))
 					.finally(() => me.loader = false);
 			}
 		}

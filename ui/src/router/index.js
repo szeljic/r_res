@@ -10,15 +10,27 @@ const routes = [{
 }, {
 	path: '/korisnici/dodaj',
 	name: 'korisnici/dodaj',
-	component: () => import('@/views/users/UserForm')
+	component: () => import('@/views/users/UsersTable')
 }, {
 	path: '/korisnici/uredi/:id',
 	name: 'korisnici/uredi',
-	component: () => import('@/views/users/UserForm')
+	component: () => import('@/views/users/UsersTable')
 }, {
 	path: '/kategorije',
 	name: 'kategorije',
 	component: () => import('@/views/categories/CategoriesTable')
+}, {
+	path: '/kategorije/dodaj',
+	name: 'kategorije/dodaj',
+	component: () => import('@/views/categories/CategoriesTable')
+}, {
+	path: '/kategorije/uredi/:id',
+	name: 'kategorije/uredi',
+	component: () => import('@/views/categories/CategoriesTable')
+}, {
+	path: '/resursi',
+	name: '/resursi',
+	component: () => import('@/views/resources/ResourcesTable')
 }];
 
 const router = new VueRouter({

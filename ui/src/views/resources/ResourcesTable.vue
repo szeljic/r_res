@@ -3,7 +3,7 @@
 		<v-row dense>
 			<v-col>
 				<v-toolbar dense elevation="2">
-					<v-toolbar-title>Kategorije</v-toolbar-title>
+					<v-toolbar-title>Resursi</v-toolbar-title>
 					<v-spacer></v-spacer>
 					<v-btn icon @click="showForm()" v-if="!form.show">
 						<v-icon>mdi-plus</v-icon>
@@ -17,15 +17,39 @@
 
 		<v-row dense v-if="form.show">
 			<v-col>
-				<category-form-component
+				<resource-form-component
 					:id="form.id"
 					@success="success"
 					@close="form.show = false"
-				></category-form-component>
+					:pre-category="category"
+				></resource-form-component>
 			</v-col>
 		</v-row>
 
 		<v-row dense v-if="!form.show">
+			<v-col md="3">
+				<select-category
+					label="Kategorija"
+					v-model="category"
+					:disabled="loading"
+					@change="fetch()"
+					hide-details
+					solo
+					:categories.sync="categories"
+				></select-category>
+			</v-col>
+			<v-col md="3">
+				<v-text-field
+					label="Trazi"
+					solo
+					hide-details
+					v-model="search"
+					@keyup="fetch()"
+				></v-text-field>
+			</v-col>
+		</v-row>
+
+		<v-row dense v-if="!form.show && items.length > 0">
 			<v-col>
 				<v-data-table
 					:headers="headers"
@@ -41,9 +65,13 @@
 						<tr>
 							<td class="text-center">{{ item.id }}</td>
 							<td>{{ item.name }}</td>
-							<td>{{ item.description }}</td>
-							<td>{{ item.created_by }}</td>
-							<td>{{ item.created_at }}</td>
+							<td>{{ item.user.first_name + ' ' + item.user.last_name }}</td>
+							<td>{{ $format(new Date(item.created_at * 1000), 'dd.MM.yyyy. HH:mm:ss') }}</td>
+
+							<td v-for="f in selectedSpecificFields" :key="f.sc_name">
+								{{ item[f.sc_name] || '' }}
+							</td>
+
 							<td class="text-center">
 								<table-menu-btn>
 									<v-list dense>
@@ -77,7 +105,7 @@
 
 		<delete-dialog
 			:show.sync="deleteDialog.show"
-			:url="'/api/v1/categories/' + deleteDialog.id"
+			:url="'/api/v1/resources/' + deleteDialog.id"
 			@success="fetch()"
 		></delete-dialog>
 
@@ -85,44 +113,42 @@
 </template>
 
 <script>
-	import CategoryFormComponent from '@/views/categories/CategoryFormComponent';
+	import ResourceFormComponent from '@/views/resources/ResourceFormComponent';
+	import SelectCategory from '@/components/SelectCategory';
 
 	export default {
-		name: 'UsersTable',
+		name: 'ResourcesTable',
 		components: {
-			CategoryFormComponent
+			ResourceFormComponent,
+			SelectCategory
 		},
 		data()
 		{
 			return {
-				headers: [{
+				staticHeaders: [{
 					text: '#',
-					value: 'ID',
-					width: 100,
-					align: 'center'
+					value: 'id',
+					width: 60,
+					align: 'center',
+					sortable: false
 				}, {
 					text: 'Naziv',
-					value: 'name'
-				}, {
-					text: 'Kratak opis',
-					value: 'description'
+					value: 'name',
+					width: 180
 				}, {
 					text: 'Napravio',
-					value: 'created_by',
-					width: 300
+					value: 'user',
+					width: 180
 				}, {
-					text: 'Datum pravljenja',
-					value: 'created_at'
-				}, {
-					text: '',
-					value: 'action',
-					sortable: false,
-					filterable: false,
-					width: 60,
-					align: 'center'
+					text: 'Datum',
+					value: 'created_at',
+					width: 180
 				}],
 				items: [],
 				total: null,
+				category: null,
+				categories: [],
+				search: null,
 				loading: false,
 				form: {
 					show: false,
@@ -138,15 +164,59 @@
 		{
 			this.fetch();
 		},
+		computed: {
+			headers()
+			{
+				let headers = [...this.staticHeaders];
+
+				if (this.category !== null)
+				{
+					if (this.selectedCategory)
+					{
+						this.selectedSpecificFields.forEach(f =>
+							headers.push({
+								text: f.name,
+								value: f.sc_name
+							}));
+					}
+				}
+
+				headers.push({
+					text: '',
+					value: 'action',
+					sortable: false,
+					filterable: false,
+					width: 60,
+					align: 'center'
+				});
+
+				return headers;
+			},
+			selectedCategory()
+			{
+				return this.categories.find(item => item.id === this.category);
+			},
+			selectedSpecificFields()
+			{
+				const c = this.selectedCategory;
+
+				return c ? c.specific_fields : [];
+			}
+		},
 		methods: {
 			async fetch()
 			{
+				if (this.category === null)
+				{
+					return;
+				}
+
 				this.loading = true;
 
 				try
 				{
 					const {data} = await this.$http({
-						url: '/api/v1/categories'
+						url: '/api/v1/resources/?category_id=' + this.category + (this.search ? '&q=' + this.search : '')
 					});
 
 					this.total = data.total;
@@ -173,7 +243,7 @@
 			},
 			showDelete(item)
 			{
-				this.deleteDialog.id = item ? item.id : null;
+				this.deleteDialog.id = item.id;
 
 				this.deleteDialog.show = true;
 			}
