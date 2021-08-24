@@ -106,7 +106,7 @@
 					{text: 'Datum', value: 'date'},
 					{text: 'Kratak tekst', value: 'string'},
 					{text: 'Duži tekst', value: 'text'},
-					{text: 'Čeker', value: 'boolean'}
+					{text: 'Istina/Laž', value: 'boolean'}
 				]
 			};
 		},

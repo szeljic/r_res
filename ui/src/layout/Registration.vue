@@ -4,6 +4,18 @@
 			<v-card-title>Registracija</v-card-title>
 			<v-divider></v-divider>
 			<v-card-text>
+
+				<v-row v-if="error !== false">
+					<v-col>
+						<v-alert
+							type="error"
+							dismissible
+							@input="error = false"
+						>{{ error }}
+						</v-alert>
+					</v-col>
+				</v-row>
+
 				<v-row dense>
 					<v-col xs="12" sm="12" md="6" lg="6" xl="6">
 						<v-text-field
@@ -70,7 +82,7 @@
 							label="Potvrda lozinke"
 							v-model="password"
 							type="password"
-							:rules="[rulePasswordAgain]"
+							:rules="[$v.required, rulePasswordAgain]"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -92,6 +104,7 @@
 		{
 			return {
 				disabled: false,
+				error: false,
 				item: {
 					first_name: null,
 					last_name: null,
@@ -109,6 +122,8 @@
 			{
 				this.$refs.frm.reset();
 				this.$refs.frm.resetValidation();
+
+				this.error = false;
 			},
 			async submit()
 			{
@@ -119,11 +134,27 @@
 
 				this.disabled = true;
 
-				await this.$http({
-					url: '/api/v1/auth/registration',
-					data: this.item,
-					method: 'POST'
-				});
+				try
+				{
+					const {data} = await this.$http({
+						url: '/api/v1/auth/registration',
+						data: this.item,
+						method: 'POST'
+					});
+
+					if (data.code === -1)
+					{
+						this.error = data.message;
+					} else if (data.code === 200)
+					{
+						this.$emit('registered', this.item.username);
+					}
+				} catch (e)
+				{
+					console.warn(e);
+
+					this.error = e.response.data.message || 'Internal server error';
+				}
 
 				this.disabled = false;
 			},

@@ -37,13 +37,14 @@ class User
 				Cookies.set(cookieToken, response.data.access_token);
 
 				await this.store.dispatch('user/token', response.data.access_token);
-			} else if (response.data.code === 403)
-			{
-				this.store.commit('user/token', null);
+
+				return true;
 			}
 		} catch (e)
 		{
-			console.warn(e);
+			this.store.commit('user/token', null);
+
+			return e.response.data.message || 'Internal server error';
 		}
 	}
 
