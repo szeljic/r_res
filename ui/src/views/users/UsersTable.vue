@@ -25,6 +25,10 @@
 					no-data-text="Nema podataka"
 					no-results-text="Nema rezultata"
 					:loading="loading"
+					:footer-props="{
+						itemsPerPageText: 'Redova po stranici',
+						pageText: '{0}-{1} od {2}'
+					}"
 				>
 					<template v-slot:item="{item}">
 						<tr>

@@ -3,7 +3,7 @@
 		<v-row dense>
 			<v-col>
 				<v-toolbar dense elevation="2">
-					<v-toolbar-title>Resursi</v-toolbar-title>
+					<v-toolbar-title>Rezervacije</v-toolbar-title>
 					<v-spacer></v-spacer>
 					<v-btn icon @click="showForm()" v-if="!form.show">
 						<v-icon>mdi-plus</v-icon>
@@ -17,27 +17,15 @@
 
 		<v-row dense v-if="form.show">
 			<v-col>
-				<resource-form-component
+				<reservation-form-component
 					:id="form.id"
 					@success="success"
 					@close="form.show = false"
-					:pre-category="category"
-				></resource-form-component>
+				></reservation-form-component>
 			</v-col>
 		</v-row>
 
 		<v-row dense v-if="!form.show">
-			<v-col md="3">
-				<select-category
-					label="Kategorija"
-					v-model="category"
-					:disabled="loading"
-					@change="fetch()"
-					hide-details
-					solo
-					:categories.sync="categories"
-				></select-category>
-			</v-col>
 			<v-col md="3">
 				<v-text-field
 					label="Trazi"
@@ -69,16 +57,19 @@
 					<template v-slot:item="{item}">
 						<tr>
 							<td class="text-center">{{ item.id }}</td>
-							<td>{{ item.name }}</td>
+							<td>{{ item.resource.name }}</td>
+							<td>{{ item.resource.user.first_name + ' ' + item.resource.user.last_name }}</td>
 							<td>{{ item.user.first_name + ' ' + item.user.last_name }}</td>
+							<td>{{ $dateFormatL18n(new Date(item.from_date * 1000)) }}</td>
+							<td>{{ $dateFormatL18n(new Date(item.to_date * 1000)) }}</td>
 							<td>{{ $dateFormatL18n(new Date(item.created_at * 1000), true) }}</td>
+							<td class="text-right">
 
-							<template v-for="f in selectedSpecificFields">
-								<td v-if="f.data_type === 'boolean'" :key="f.sc_name">
-									<status-icon v-model="item[f.sc_name]"></status-icon>
-								</td>
-								<td v-else :key="f.sc_name">{{ item[f.sc_name] || '' }}</td>
-							</template>
+								<v-chip color="green" v-if="item.status === 0" dark label>Neizvrsen</v-chip>
+								<v-chip color="orange" v-if="item.status === 1" dark label>U toku</v-chip>
+								<v-chip color="red" v-if="item.status === 2" dark label>Zavrsen</v-chip>
+
+							</td>
 
 							<td class="text-center">
 								<table-menu-btn>
@@ -113,7 +104,7 @@
 
 		<delete-dialog
 			:show.sync="deleteDialog.show"
-			:url="'/api/v1/resources/' + deleteDialog.id"
+			:url="'/api/v1/reservations/' + deleteDialog.id"
 			@success="fetch()"
 		></delete-dialog>
 
@@ -121,41 +112,60 @@
 </template>
 
 <script>
-	import ResourceFormComponent from '@/views/resources/ResourceFormComponent';
-	import SelectCategory from '@/components/SelectCategory';
+	import ReservationFormComponent from '@/views/reservations/ReservationFormComponent';
 
 	export default {
-		name: 'ResourcesTable',
+		name: 'ReservationsTable',
 		components: {
-			ResourceFormComponent,
-			SelectCategory
+			ReservationFormComponent
 		},
 		data()
 		{
 			return {
-				staticHeaders: [{
+				headers: [{
 					text: '#',
 					value: 'id',
 					width: 60,
 					align: 'center',
 					sortable: false
 				}, {
-					text: 'Naziv',
-					value: 'name',
+					text: 'Resurs',
+					value: 'resource',
 					width: 180
 				}, {
-					text: 'Napravio',
-					value: 'user',
-					width: 180
+					text: 'Vlasnik resursa',
+					value: 'resource.user'
 				}, {
-					text: 'Datum',
-					value: 'created_at',
-					width: 180
+					text: 'Iznajmljuje',
+					value: 'user'
+				}, {
+					text: 'Rezervisano od',
+					value: 'from_date',
+					width: 150
+				}, {
+					text: 'Rezervisano do',
+					value: 'to_date',
+					width: 150
+				}, {
+					text: 'Datum rezervisanja',
+					value: 'created_at'
+				}, {
+					text: 'Status',
+					value: 'status',
+					width: 60,
+					align: 'right',
+					sortable: false,
+					filterable: false
+				}, {
+					text: '',
+					value: 'action',
+					sortable: false,
+					filterable: false,
+					width: 60,
+					align: 'center'
 				}],
 				items: [],
 				total: null,
-				category: null,
-				categories: [],
 				search: null,
 				loading: false,
 				form: {
@@ -172,45 +182,6 @@
 		{
 			this.fetch();
 		},
-		computed: {
-			headers()
-			{
-				let headers = [...this.staticHeaders];
-
-				if (this.category !== null)
-				{
-					if (this.selectedCategory)
-					{
-						this.selectedSpecificFields.forEach(f =>
-							headers.push({
-								text: f.name,
-								value: f.sc_name
-							}));
-					}
-				}
-
-				headers.push({
-					text: '',
-					value: 'action',
-					sortable: false,
-					filterable: false,
-					width: 60,
-					align: 'center'
-				});
-
-				return headers;
-			},
-			selectedCategory()
-			{
-				return this.categories.find(item => item.id === this.category);
-			},
-			selectedSpecificFields()
-			{
-				const c = this.selectedCategory;
-
-				return c ? c.specific_fields : [];
-			}
-		},
 		methods: {
 			async fetch()
 			{
@@ -224,12 +195,32 @@
 				try
 				{
 					const {data} = await this.$http({
-						url: '/api/v1/resources/?category_id=' + this.category + (this.search ? '&q=' + this.search : '')
+						url: '/api/v1/reservations' + (this.search ? '/?q=' + this.search : '')
 					});
 
 					this.total = data.total;
 
 					this.items = data.items || [];
+
+					this.items.map(item =>
+					{
+						item.status = 0;
+
+						const now = new Date().valueOf();
+
+						if (now < item.from_date * 1000)
+						{
+							item.status = 0;
+						} else if (now > item.from_date * 1000 && now < item.to_date * 1000)
+						{
+							item.status = 1;
+						} else if (now > item.to_date * 1000)
+						{
+							console.log(now);
+							console.log(item.to_date);
+							item.status = 2;
+						}
+					});
 				} catch (e)
 				{
 					console.warn(e);
