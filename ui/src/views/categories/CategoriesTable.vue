@@ -36,6 +36,10 @@
 					no-data-text="Nema podataka"
 					no-results-text="Nema rezultata"
 					:loading="loading"
+					:footer-props="{
+						itemsPerPageText: 'Redova po stranici',
+						pageText: '{0}-{1} od {2}'
+					}"
 				>
 					<template v-slot:item="{item}">
 						<tr>
@@ -43,7 +47,7 @@
 							<td>{{ item.name }}</td>
 							<td>{{ item.description }}</td>
 							<td>{{ item.user.first_name + ' ' + item.user.last_name }}</td>
-							<td>{{ item.created_at }}</td>
+							<td>{{ $dateFormatL18n(new Date(item.created_at), true) }}</td>
 							<td class="text-center">
 								<table-menu-btn>
 									<v-list dense>

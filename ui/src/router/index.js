@@ -31,6 +31,14 @@ const routes = [{
 	path: '/resursi',
 	name: '/resursi',
 	component: () => import('@/views/resources/ResourcesTable')
+}, {
+	path: '/rezervacije',
+	name: '/rezervacije',
+	component: () => import('@/views/reservations/ReservationsTable')
+}, {
+	path: '/rezervacije/dodaj',
+	name: '/rezervacije/dodaj',
+	component: () => import('@/views/reservations/ReservationFormComponent')
 }];
 
 const router = new VueRouter({
