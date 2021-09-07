@@ -274,9 +274,7 @@ func GetResource(id int) map[string]interface{} {
 func GetTrimResource(id int) *Resource {
 
 	collection := DB.Database(Database).Collection("resources")
-
 	resource := collection.FindOne(context.Background(), bson.M{"id": id, "deleted_at": nil})
-
 
 	r := make(map[string]interface{})
 	err := resource.Decode(&r)
@@ -287,8 +285,10 @@ func GetTrimResource(id int) *Resource {
 
 	res := Resource{}
 
-	user := User{}
+	var user User
 	err = mapstructure.Decode(r["user"], &user)
+
+	log.Println("SIDIASD", r["user"])
 
 	if err != nil {
 		panic(err)
@@ -305,7 +305,6 @@ func GetTrimResource(id int) *Resource {
 }
 
 func DeleteResource(id int) int64 {
-
 	session, err := DB.StartSession()
 	if err != nil {
 		panic(err)
@@ -313,7 +312,8 @@ func DeleteResource(id int) int64 {
 	defer session.EndSession(context.Background())
 
 	var modified int64
-	err = mongo.WithSession(context.Background(), session, func(sessionContext mongo.SessionContext) error {
+	err = mongo.WithSession(context.Background(), session,
+		func(sessionContext mongo.SessionContext) error {
 		collection := DB.Database(Database).Collection("resources")
 		now := time.Now().Unix()
 		result, err := collection.UpdateOne(context.Background(),
@@ -321,20 +321,17 @@ func DeleteResource(id int) int64 {
 			bson.D{
 				{"$set", bson.M{"deleted_at": now},
 				}})
-
 		if err != nil {
 			return err
 		}
 
 		err = DeleteReservationsOfResource(id)
-
 		if err != nil {
 			return err
 		}
 		modified = result.ModifiedCount
 		return nil
 	})
-
 	if err != nil {
 		return 0
 	}
@@ -386,21 +383,16 @@ func DeleteResourcesOfCategory(categoryID int) error {
 	findOptions := options.Find()
 	filter := bson.M{"category.id": categoryID}
 	resources, err := collection.Find(context.Background(), filter, findOptions)
-	log.Println("D")
 
 	if err != nil {
 		return err
 	}
-	log.Println("E")
 
 	for resources.Next(context.Background()) {
-		log.Println("AAS")
-		log.Println("AAS")
 		var resource Resource
 		if err = resources.Decode(&resource); err != nil {
 			return err
 		}
-		log.Println(resource.ID)
 		go DeleteResource(resource.ID)
 	}
 

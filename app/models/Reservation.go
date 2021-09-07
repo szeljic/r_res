@@ -93,6 +93,8 @@ func SaveReservation(fromDate, toDate int64, resourceID int, createdBy int, crea
 	collection := DB.Database(Database).Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"id": createdBy}).Decode(&user)
 
+	log.Println(user, "ASDSAD")
+
 	if err != nil {
 		log.Println(err)
 		return &errorString{err.Error()}

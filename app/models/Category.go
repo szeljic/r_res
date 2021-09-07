@@ -12,14 +12,14 @@ import (
 )
 
 type Category struct {
-	ID int											`bson:"id" json:"id"`
-	Name string										`bson:"name" json:"name"`
-	Description string								`bson:"description" json:"description"`
-	CreatedBy int									`bson:"created_by" json:"created_by"`
-	CreatedAt time.Time								`bson:"created_at" json:"created_at"`
-	User User										`bson:"user" json:"user"`
-	SpecificFields []SpecificField 					`bson:"specific_fields" json:"specific_fields"`
-	DeletedAt int64 								`bson:"deleted_at" json:"deleted_at"`
+	ID int								`bson:"id" json:"id"`
+	Name string							`bson:"name" json:"name"`
+	Description string					`bson:"description" json:"description"`
+	CreatedBy int						`bson:"created_by" json:"created_by"`
+	CreatedAt time.Time					`bson:"created_at" json:"created_at"`
+	User User							`bson:"user" json:"user"`
+	SpecificFields []SpecificField 		`bson:"specific_fields" json:"specific_fields"`
+	DeletedAt int64 					`bson:"deleted_at" json:"deleted_at"`
 }
 
 type SpecificField struct {
@@ -29,7 +29,8 @@ type SpecificField struct {
 	DataType	string		`bson:"data_type" json:"data_type"`
 }
 
-func SaveCategory(name, description string, specificFields []SpecificField, createdBy int, createdAt time.Time) error {
+func SaveCategory(name, description string, specificFields []SpecificField, createdBy int,
+	createdAt time.Time) error {
 
 	var user User
 	collection := DB.Database(Database).Collection("users")

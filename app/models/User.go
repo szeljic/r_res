@@ -13,14 +13,14 @@ import (
 )
 
 type User struct {
-	ID int				`bson:"id" json:"id"`
-	Username string		`bson:"username" json:"username"`
-	Password string		`bson:"password" json:"-"`
-	FirstName string	`bson:"first_name" json:"first_name"`
-	LastName string		`bson:"last_name" json:"last_name"`
-	Email string		`bson:"email" json:"email"`
-	DateOfBirth string	`bson:"date_of_birth" json:"date_of_birth"`
-	Status int			`bson:"status" json:"status"`
+	ID int				`bson:"id" json:"id" mapstructure:"id"`
+	Username string		`bson:"username" json:"username" mapstructure:"username"`
+	Password string		`bson:"password" json:"-" mapstructure:"password"`
+	FirstName string	`bson:"first_name" json:"first_name" mapstructure:"first_name"`
+	LastName string		`bson:"last_name" json:"last_name" mapstructure:"last_name"`
+	Email string		`bson:"email" json:"email" mapstructure:"email"`
+	DateOfBirth string	`bson:"date_of_birth" json:"date_of_birth" mapstructure:"date_of_birth"`
+	Status int			`bson:"status" json:"status" mapstructure:"status"`
 }
 
 func SaveUser(username, password, firstName, lastName, dob, email string) error {
@@ -36,7 +36,7 @@ func SaveUser(username, password, firstName, lastName, dob, email string) error 
 
 	if err == nil {
 		log.Println(err)
-		return &errorString{"Korisnik vec postoji!"}
+		return &errorString{"Korisnik već postoji!"}
 	}
 
 	_, err = collection.InsertOne(context.Background(),

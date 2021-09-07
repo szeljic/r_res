@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"github.com/revel/revel"
-	"log"
 	"net/http"
 	"r_res/app/models"
 	"strconv"
@@ -85,7 +84,6 @@ func (c Resource) Create() revel.Result {
 
 	user := models.GetLoggedUser(c.Request.Header.Get("x-token"))
 	if user == (models.User{}) {
-		log.Println("USER IS NOT LOGGED IN!!!")
 		r := TokenResponse{
 			Logged: false,
 		}

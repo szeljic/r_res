@@ -7,7 +7,6 @@ import (
 	"github.com/revel/revel"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
 	"net/http"
 	"r_res/app/common"
 	"r_res/app/controllers"
@@ -112,14 +111,12 @@ type TokenResponse struct {
 func checkUser(c *revel.Controller) revel.Result {
 
 	if !isLoggedIn(c) {
-		log.Println("USER IS NOT LOGGED IN!!!")
 		r := TokenResponse{
 			Logged: false,
 		}
 		c.Response.Status = http.StatusUnauthorized
 		return c.RenderJSON(r)
 	}
-	log.Println("USER IS LOGGED IN!!!")
 	return nil
 }
 

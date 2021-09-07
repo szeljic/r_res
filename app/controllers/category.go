@@ -7,6 +7,7 @@ import (
 	"r_res/app/models"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -119,7 +120,12 @@ func (c Category) Create() revel.Result {
 	}
 
 	createdAt := time.Now()
-	err = models.SaveCategory(createStruct.Name, createStruct.Description, createStruct.SpecificFields, user.ID, createdAt)
+
+	var m sync.Mutex
+	m.Lock()
+	err = models.SaveCategory(createStruct.Name, createStruct.Description,
+		createStruct.SpecificFields, user.ID, createdAt)
+	m.Unlock()
 
 	r := Response{
 		Message: "Success",

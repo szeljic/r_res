@@ -111,7 +111,7 @@ func (c Auth) Login() revel.Result {
 	}
 
 	r := Response{
-		Message: "Korisnicko ime ili lozinka nisu odgovarajuci!",
+		Message: "Korisničko ime ili lozinka nisu odgovarajući!",
 		Code: 403,
 	}
 	c.Response.Status = http.StatusBadRequest
