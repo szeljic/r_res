@@ -1,0 +1,27 @@
+version: "3"
+
+networks:
+    devel:
+
+services:
+    mongo-db:
+        build:
+            context: ./mongo
+            dockerfile: mongo.dockerfile
+        container_name: mongo-db
+        volumes:
+            - ./mongo-db:/data/db
+        networks:
+            - devel
+        ports:
+            - "27017:27017"
+
+    app:
+        build:
+            context: ..
+            dockerfile: app.dockerfile
+        container_name: app
+        networks:
+            - devel
+        ports:
+            - "9000:9000"
