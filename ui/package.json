@@ -30,7 +30,6 @@
     "eslint": "^7.32.0",
     "eslint-plugin-compat": "^3.13.0",
     "eslint-plugin-vue": "^7.19.1",
-    "node-sass": "^4.12.0",
     "sass": "^1.42.1",
     "sass-loader": "^10.2.0",
     "vue-cli-plugin-vuetify": "^2.4.3",

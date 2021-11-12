@@ -19,7 +19,7 @@ services:
     app:
         build:
             context: ..
-            dockerfile: app.dockerfile
+            dockerfile: Dockerfile
         container_name: app
         networks:
             - devel

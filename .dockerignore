@@ -1,3 +1,9 @@
-ui/
+.idea/
 target/
 none
+.docker
+ui/.idea/
+ui/dist/
+ui/build/
+ui/target/
+ui/node_modules/
