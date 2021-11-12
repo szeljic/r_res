@@ -1,6 +1,6 @@
 test-results/
-tmp/
-routes/
+app/tmp
+app/routes
 .idea/
 public/
 target/
