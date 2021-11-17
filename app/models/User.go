@@ -21,6 +21,7 @@ type User struct {
 	Email string		`bson:"email" json:"email" mapstructure:"email"`
 	DateOfBirth string	`bson:"date_of_birth" json:"date_of_birth" mapstructure:"date_of_birth"`
 	Status int			`bson:"status" json:"status" mapstructure:"status"`
+	IsAdmin bool		`bson:"is_admin" json:"is_admin" mapstructure:"is_admin"`
 }
 
 func SaveUser(username, password, firstName, lastName, dob, email string) error {

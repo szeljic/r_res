@@ -12,6 +12,7 @@ module:testrunner
 POST     /api/v1/auth/login                  Auth.Login
 POST     /api/v1/auth/registration           Auth.Registration
 GET      /api/v1/auth/check                  Auth.TokenValidation
+GET      /api/v1/auth/active                 Auth.ActiveUser
 
 GET      /api/v1/users                                       User.Index
 GET      /api/v1/users/:id                                   User.Show

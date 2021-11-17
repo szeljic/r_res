@@ -169,3 +169,32 @@ func (c Auth) TokenValidation() revel.Result {
 	}
 	return c.RenderJSON(r)
 }
+
+type ActiveResponse struct {
+	FirstName string	`json:"first_name"`
+	LastName string		`json:"last_name"`
+	UserType string 	`json:"user_type"`
+}
+
+func (c Auth) ActiveUser() revel.Result {
+	user := models.GetLoggedUser(c.Request.Header.Get("x-token"))
+
+	if user == (models.User{}) {
+		r := TokenResponse{
+			Logged: false,
+		}
+		c.Response.Status = http.StatusUnauthorized
+		return c.RenderJSON(r)
+	}
+
+	res := ActiveResponse{
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		UserType:  "user",
+	}
+	if user.IsAdmin == true {
+		res.UserType = "admin"
+	}
+
+	return c.RenderJSON(res)
+}
