@@ -36,7 +36,10 @@ class User
 			{
 				Cookies.set(cookieToken, response.data.access_token);
 
+				await this.store.dispatch('user/status', User.statuses.CHECKING);
 				await this.store.dispatch('user/token', response.data.access_token);
+
+				await this.check();
 
 				return true;
 			}
@@ -71,18 +74,24 @@ class User
 			return;
 		}
 
-		this.vue.$http({
-			url: '/api/v1/auth/check',
-			method: 'GET'
-		}).then(() =>
+		try
 		{
-		}).catch(async () =>
+			let {data: activeData} = await this.vue.$http({
+				url: '/api/v1/auth/active',
+				method: 'GET'
+			});
+
+			await this.store.dispatch('user/whoami', {
+				firstName: activeData.first_name,
+				lastName: activeData.last_name,
+				userType: activeData.user_type
+			});
+		} catch (e)
 		{
 			await this.store.dispatch('user/logged', false);
-		}).finally(async () =>
-		{
-			await this.store.dispatch('user/status', User.statuses.CHECKED);
-		});
+		}
+
+		await this.store.dispatch('user/status', User.statuses.CHECKED);
 	}
 }
 

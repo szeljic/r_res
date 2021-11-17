@@ -75,15 +75,6 @@
 								<table-menu-btn>
 									<v-list dense>
 										<v-list-item-group>
-											<v-list-item @click.prevent="showForm(item)">
-												<v-list-item-icon>
-													<v-icon>mdi-pencil</v-icon>
-												</v-list-item-icon>
-												<v-list-item-content>
-													<v-list-item-title>Uredi</v-list-item-title>
-												</v-list-item-content>
-											</v-list-item>
-
 											<v-list-item @click.prevent="showDelete(item)">
 												<v-list-item-icon>
 													<v-icon>mdi-delete-forever-outline</v-icon>
@@ -216,8 +207,6 @@
 							item.status = 1;
 						} else if (now > item.to_date * 1000)
 						{
-							console.log(now);
-							console.log(item.to_date);
 							item.status = 2;
 						}
 					});
