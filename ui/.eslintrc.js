@@ -5,7 +5,7 @@ module.exports = {
 	},
 	extends: ['plugin:vue/essential', 'eslint:recommended'],
 	parserOptions: {
-		parser: 'babel-eslint'
+		parser: '@babel/eslint-parser'
 	},
 	rules: {
 		'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
@@ -33,7 +33,10 @@ module.exports = {
 		'no-dupe-keys': 'error',
 		'no-prototype-builtins': 'off',
 		'no-mixed-spaces-and-tabs': ['warn'],
-		'eqeqeq': 'warn'
+		'eqeqeq': 'warn',
+		'vue/valid-v-slot': ['error', {
+			'allowModifiers': true
+		}]
 	},
 	overrides: [
 		{
