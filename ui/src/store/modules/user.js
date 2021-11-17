@@ -5,7 +5,8 @@ export default {
 	state: {
 		status: User.statuses.INIT,
 		token: null,
-		logged: false
+		logged: false,
+		whoami: null
 	},
 	mutations: {
 		token(state, v = null)
@@ -20,6 +21,10 @@ export default {
 		logged(state, v)
 		{
 			state.logged = v;
+		},
+		whoami(state, v)
+		{
+			state.whoami = v;
 		}
 	},
 	actions: {
@@ -34,6 +39,10 @@ export default {
 		logged({commit}, v)
 		{
 			commit('logged', v);
+		},
+		whoami({commit}, v)
+		{
+			commit('whoami', v);
 		}
 	},
 	getters: {
@@ -48,6 +57,10 @@ export default {
 		status(state)
 		{
 			return state.status;
+		},
+		whoami(state)
+		{
+			return state.whoami;
 		}
 	}
 };
