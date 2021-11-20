@@ -171,6 +171,8 @@ func (c Auth) TokenValidation() revel.Result {
 }
 
 type ActiveResponse struct {
+	UserID int			`json:"id"`
+	Username string		`json:"username"`
 	FirstName string	`json:"first_name"`
 	LastName string		`json:"last_name"`
 	UserType string 	`json:"user_type"`
@@ -188,6 +190,8 @@ func (c Auth) ActiveUser() revel.Result {
 	}
 
 	res := ActiveResponse{
+		UserID: user.ID,
+		Username: user.Username,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		UserType:  "user",
