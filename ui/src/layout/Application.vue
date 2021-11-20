@@ -81,6 +81,16 @@
 				drawer: true
 			};
 		},
+		created()
+		{
+			if (this.ut === 'admin' && this.$route.name !== 'korisnici')
+			{
+				this.$router.push({name: 'korisnici'});
+			} else if (this.ut === 'user' && this.$route.name !== 'rezervacije')
+			{
+				this.$router.push({name: 'rezervacije'});
+			}
+		},
 		computed: {
 			...mapGetters({
 				whoami: 'user/whoami'

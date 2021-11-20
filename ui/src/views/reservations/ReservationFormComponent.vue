@@ -32,6 +32,7 @@
 									v-model="menuFrom"
 									:close-on-content-click="false"
 									:nudge-right="40"
+									:nudge-top="20"
 									transition="scale-transition"
 									offset-y
 									min-width="auto"
@@ -60,6 +61,7 @@
 									v-model="menuTo"
 									:close-on-content-click="false"
 									:nudge-right="40"
+									:nudge-top="20"
 									transition="scale-transition"
 									offset-y
 									min-width="auto"
@@ -145,10 +147,6 @@
 				menuFrom: false,
 				menuTo: false
 			};
-		},
-		created()
-		{
-			window.op = this;
 		},
 		computed: {
 			textDateFrom()

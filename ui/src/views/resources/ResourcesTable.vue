@@ -81,7 +81,7 @@
 							</template>
 
 							<td class="text-center">
-								<table-menu-btn>
+								<table-menu-btn :disabled="!showAction(item)">
 									<v-list dense>
 										<v-list-item-group>
 											<v-list-item @click.prevent="showForm(item)">
@@ -123,6 +123,7 @@
 <script>
 	import ResourceFormComponent from '@/views/resources/ResourceFormComponent';
 	import SelectCategory from '@/components/SelectCategory';
+	import {mapGetters} from 'vuex';
 
 	export default {
 		name: 'ResourcesTable',
@@ -173,6 +174,9 @@
 			this.fetch();
 		},
 		computed: {
+			...mapGetters({
+				whoami: 'user/whoami'
+			}),
 			headers()
 			{
 				let headers = [...this.staticHeaders];
@@ -254,6 +258,15 @@
 				this.deleteDialog.id = item.id;
 
 				this.deleteDialog.show = true;
+			},
+			showAction(item)
+			{
+				if (this.whoami.userType === 'admin')
+				{
+					return true;
+				}
+
+				return item.user.id === this.whoami.id;
 			}
 		}
 	};

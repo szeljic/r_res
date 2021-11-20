@@ -4,6 +4,9 @@ import VueRouter from 'vue-router';
 Vue.use(VueRouter);
 
 const routes = [{
+	path: '/',
+	name: 'home'
+},{
 	path: '/korisnici',
 	name: 'korisnici',
 	component: () => import('@/views/users/UsersTable')
@@ -29,15 +32,15 @@ const routes = [{
 	component: () => import('@/views/categories/CategoriesTable')
 }, {
 	path: '/resursi',
-	name: '/resursi',
+	name: 'resursi',
 	component: () => import('@/views/resources/ResourcesTable')
 }, {
 	path: '/rezervacije',
-	name: '/rezervacije',
+	name: 'rezervacije',
 	component: () => import('@/views/reservations/ReservationsTable')
 }, {
 	path: '/rezervacije/dodaj',
-	name: '/rezervacije/dodaj',
+	name: 'rezervacije/dodaj',
 	component: () => import('@/views/reservations/ReservationFormComponent')
 }];
 

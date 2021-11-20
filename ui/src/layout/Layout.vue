@@ -22,6 +22,19 @@
 		},
 		async created()
 		{
+			this.$store.subscribeAction({
+				after: (action, state) =>
+				{
+					if (action.type === 'user/logged')
+					{
+						if (state.user.logged === false && this.$route.name !== 'home')
+						{
+							this.$router.push({name: 'home'});
+						}
+					}
+				}
+			});
+
 			await this.$user.check();
 		},
 		computed: {

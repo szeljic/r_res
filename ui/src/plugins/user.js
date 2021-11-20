@@ -82,9 +82,11 @@ class User
 			});
 
 			await this.store.dispatch('user/whoami', {
+				id: activeData.id,
+				username: activeData.username,
+				userType: activeData.user_type,
 				firstName: activeData.first_name,
-				lastName: activeData.last_name,
-				userType: activeData.user_type
+				lastName: activeData.last_name
 			});
 		} catch (e)
 		{

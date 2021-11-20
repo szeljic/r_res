@@ -12,7 +12,6 @@ export default {
 		token(state, v = null)
 		{
 			state.token = v;
-			state.logged = v !== null;
 		},
 		status(state, v)
 		{
@@ -28,9 +27,10 @@ export default {
 		}
 	},
 	actions: {
-		token({commit}, v)
+		token({commit, dispatch}, v)
 		{
 			commit('token', v);
+			dispatch('logged', v !== null && v !== undefined);
 		},
 		status({commit}, v)
 		{

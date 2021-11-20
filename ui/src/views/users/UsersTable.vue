@@ -5,9 +5,6 @@
 				<v-toolbar dense elevation="2">
 					<v-toolbar-title>Korisnici</v-toolbar-title>
 					<v-spacer></v-spacer>
-					<v-btn icon to="/korisnici/dodaj">
-						<v-icon>mdi-plus</v-icon>
-					</v-btn>
 					<v-btn icon @click.prevent="fetch">
 						<v-icon>mdi-refresh</v-icon>
 					</v-btn>
@@ -39,11 +36,6 @@
 							<td>{{ item.date_of_birth }}</td>
 							<td class="text-center">
 								<status-icon v-model="item.status"></status-icon>
-							</td>
-							<td class="text-center">
-								<v-btn small :to="`/korisnici/uredi/${item.id}`" icon>
-									<v-icon>mdi-pencil</v-icon>
-								</v-btn>
 							</td>
 						</tr>
 					</template>
@@ -84,13 +76,6 @@
 					value: 'statue',
 					align: 'center',
 					width: 90
-				}, {
-					text: '',
-					value: null,
-					sortable: false,
-					filterable: false,
-					width: 104,
-					align: 'center'
 				}],
 				items: [],
 				total: null,

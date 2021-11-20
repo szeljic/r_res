@@ -36,12 +36,34 @@
 				</v-row>
 				<v-row dense>
 					<v-col>
-						<v-text-field
-							outlined
-							label="Datum rođenja"
-							v-model="item.date_of_birth"
-							:rules="[$v.required]"
-						></v-text-field>
+						<v-menu
+							v-model="menuDOB"
+							:close-on-content-click="false"
+							:nudge-right="40"
+							:nudge-top="20"
+							transition="scale-transition"
+							offset-y
+							min-width="auto"
+						>
+							<template v-slot:activator="{ on, attrs }">
+								<v-text-field
+									label="Datum rođenja"
+									outlined
+									prepend-inner-icon="mdi-calendar"
+									readonly
+									v-bind="attrs"
+									v-on="on"
+									clearable
+									:value="textDateDOB"
+									:rules="[$v.required]"
+								></v-text-field>
+							</template>
+							<v-date-picker
+								v-model="item.date_of_birth"
+								@input="menuDOB = false"
+								:rules="[$v.required]"
+							></v-date-picker>
+						</v-menu>
 					</v-col>
 				</v-row>
 				<v-row dense>
@@ -114,8 +136,21 @@
 					password: null
 				},
 				password: null,
-				valid: null
+				valid: null,
+
+				menuDOB: false
 			};
+		},
+		computed: {
+			textDateDOB()
+			{
+				if (!this.item.date_of_birth)
+				{
+					return null;
+				}
+
+				return this.$dateFormatL18n(this.$dateParseISO(this.item.date_of_birth));
+			}
 		},
 		methods: {
 			reset()
