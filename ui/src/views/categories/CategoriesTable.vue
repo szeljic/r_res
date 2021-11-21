@@ -31,15 +31,17 @@
 					:headers="headers"
 					:items="items"
 					:server-items-length="total"
-					:items-per-page="10"
 					class="elevation-2"
 					no-data-text="Nema podataka"
 					no-results-text="Nema rezultata"
 					:loading="loading"
+					:multi-sort="false"
 					:footer-props="{
 						itemsPerPageText: 'Redova po stranici',
 						pageText: '{0}-{1} od {2}'
 					}"
+					:options.sync="options"
+					@update:options="onChangeOptions"
 				>
 					<template v-slot:item="{item}">
 						<tr>
@@ -99,6 +101,10 @@
 		data()
 		{
 			return {
+				options: {
+					itemsPerPage: 10,
+					page: 1
+				},
 				headers: [{
 					text: '#',
 					value: 'ID',
@@ -128,6 +134,7 @@
 				items: [],
 				total: null,
 				loading: false,
+				initLoad: false,
 				form: {
 					show: false,
 					id: null
@@ -138,19 +145,35 @@
 				}
 			};
 		},
-		created()
+		async created()
 		{
-			this.fetch();
+			this.initLoad = true;
+			await this.fetch();
+			this.initLoad = false;
 		},
 		methods: {
 			async fetch()
 			{
 				this.loading = true;
 
+				let url = new URLSearchParams();
+
+				if (Object.keys(this.options).length > 0)
+				{
+					url.append('paginate-by', this.options.itemsPerPage);
+					url.append('page', this.options.page);
+
+					if (this.options.sortBy && this.options.sortBy.length > 0)
+					{
+						url.append('sort-by', this.options.sortBy[0]);
+						url.append('order', this.options.sortDesc[0] === true ? 'desc' : 'asc');
+					}
+				}
+
 				try
 				{
 					const {data} = await this.$http({
-						url: '/api/v1/categories'
+						url: '/api/v1/categories/?' + url.toString()
 					});
 
 					this.total = data.total;
@@ -180,6 +203,13 @@
 				this.deleteDialog.id = item ? item.id : null;
 
 				this.deleteDialog.show = true;
+			},
+			onChangeOptions()
+			{
+				if (!this.initLoad)
+				{
+					this.fetch();
+				}
 			}
 		}
 	};

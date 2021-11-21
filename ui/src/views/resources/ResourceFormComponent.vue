@@ -149,8 +149,8 @@
 			},
 			id: {
 				type: Number,
-				default: null,
-				required: true
+				default: 0,
+				required: false
 			}
 		},
 		created()

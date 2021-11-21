@@ -36,6 +36,7 @@
 					hide-details
 					solo
 					:categories.sync="categories"
+					clearable
 				></select-category>
 			</v-col>
 			<v-col md="3">
@@ -61,10 +62,12 @@
 					no-data-text="Nema podataka"
 					no-results-text="Nema rezultata"
 					:loading="loading"
+					:must-sort="false"
 					:footer-props="{
 						itemsPerPageText: 'Redova po stranici',
 						pageText: '{0}-{1} od {2}'
 					}"
+					@update:options="onChangeOptions"
 				>
 					<template v-slot:item="{item}">
 						<tr>
@@ -134,12 +137,15 @@
 		data()
 		{
 			return {
+				options: {
+					itemsPerPage: 10,
+					page: 1
+				},
 				staticHeaders: [{
 					text: '#',
 					value: 'id',
 					width: 60,
-					align: 'center',
-					sortable: false
+					align: 'center'
 				}, {
 					text: 'Naziv',
 					value: 'name',
@@ -159,6 +165,7 @@
 				categories: [],
 				search: null,
 				loading: false,
+				initLoad: false,
 				form: {
 					show: false,
 					id: null
@@ -169,9 +176,11 @@
 				}
 			};
 		},
-		created()
+		async created()
 		{
-			this.fetch();
+			this.initLoad = true;
+			await this.fetch();
+			this.initLoad = false;
 		},
 		computed: {
 			...mapGetters({
@@ -225,10 +234,31 @@
 
 				this.loading = true;
 
+				let url = new URLSearchParams();
+
+				url.append('category_id', this.category);
+
+				if (this.search)
+				{
+					url.append('q', this.search);
+				}
+
+				if (Object.keys(this.options).length > 0)
+				{
+					url.append('paginate-by', this.options.itemsPerPage);
+					url.append('page', this.options.page);
+
+					if (this.options.sortBy && this.options.sortBy.length > 0)
+					{
+						url.append('sort-by', this.options.sortBy[0]);
+						url.append('order', this.options.sortDesc[0] === true ? 'desc' : 'asc');
+					}
+				}
+
 				try
 				{
 					const {data} = await this.$http({
-						url: '/api/v1/resources/?category_id=' + this.category + (this.search ? '&q=' + this.search : '')
+						url: '/api/v1/resources/?' + url.toString()
 					});
 
 					this.total = data.total;
@@ -267,6 +297,13 @@
 				}
 
 				return item.user.id === this.whoami.id;
+			},
+			onChangeOptions()
+			{
+				if (!this.initLoad)
+				{
+					this.fetch();
+				}
 			}
 		}
 	};
