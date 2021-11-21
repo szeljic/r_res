@@ -4,6 +4,16 @@
 			<v-card-title>Dodaj</v-card-title>
 			<v-divider></v-divider>
 			<v-card-text>
+				<v-row v-if="errorMessage">
+					<v-col cols="12">
+						<v-alert
+							type="error"
+							dismissible
+							@input="errorMessage = null"
+						>{{ errorMessage }}
+						</v-alert>
+					</v-col>
+				</v-row>
 				<v-row>
 					<v-col sm="12" md="12" lg="6" xl="6">
 						<v-text-field
@@ -133,6 +143,7 @@
 				valid: null,
 				loading: false,
 				disabled: false,
+				errorMessage: null,
 				item: {
 					name: null,
 					category: null,
@@ -192,7 +203,10 @@
 						{
 							case 'integer':
 							case 'float':
-								value = Number(value);
+								if (!isNaN(parseFloat(value)) && isFinite(value))
+								{
+									value = Number(value);
+								}
 								break;
 							case 'text':
 							case 'string':
@@ -218,6 +232,8 @@
 				{
 					console.warn(e);
 					me.$emit('failed', e);
+
+					me.errorMessage = e.response.data.message;
 				} finally
 				{
 					this.loading = false;

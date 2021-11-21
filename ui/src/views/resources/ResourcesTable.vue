@@ -67,6 +67,7 @@
 						itemsPerPageText: 'Redova po stranici',
 						pageText: '{0}-{1} od {2}'
 					}"
+					:options.sync="options"
 					@update:options="onChangeOptions"
 				>
 					<template v-slot:item="{item}">
