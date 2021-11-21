@@ -33,9 +33,16 @@
 							<td>{{ item.first_name }} {{ item.last_name }}</td>
 							<td>{{ item.username }}</td>
 							<td>{{ item.email }}</td>
-							<td>{{ item.date_of_birth }}</td>
+							<td>{{ $dateFormatL18n(new Date(item.date_of_birth)) }}</td>
 							<td class="text-center">
-								<status-icon v-model="item.status"></status-icon>
+								<v-checkbox
+									hide-details
+									class="pa-0 ma-0 ml-2"
+									:disabled="loading"
+									v-model="item.status"
+									@change="updateStatus(item)"
+									:color="item.status ? 'green': 'grey'"
+								></v-checkbox>
 							</td>
 						</tr>
 					</template>
@@ -73,7 +80,7 @@
 					width: 140
 				}, {
 					text: 'Status',
-					value: 'statue',
+					value: 'status',
 					align: 'center',
 					width: 90
 				}],
@@ -91,12 +98,38 @@
 			{
 				this.loading = true;
 
-				const {data} = await this.$http({
-					url: '/api/v1/users'
-				});
+				try
+				{
+					const {data} = await this.$http({
+						url: '/api/v1/users'
+					});
 
-				this.total = data.total;
-				this.items = data.items;
+					this.total = data.total;
+					this.items = data.items;
+				} catch (e)
+				{
+					console.warn(e);
+				}
+
+				this.loading = false;
+			},
+			async updateStatus(item)
+			{
+				this.loading = true;
+
+				try
+				{
+					await this.$http({
+						method: 'PATCH',
+						url: '/api/v1/users/' + item.id,
+						data: {
+							status: item.status ? '1' : '0'
+						}
+					});
+				} catch (e)
+				{
+					console.warn(e);
+				}
 
 				this.loading = false;
 			}
